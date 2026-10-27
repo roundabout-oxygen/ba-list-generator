@@ -117,13 +117,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-sky-200 shadow-sm overflow-hidden">
+    <div className="sticky top-1 sm:top-2 z-40 bg-white/95 backdrop-blur-sm rounded-2xl border-2 border-sky-200 shadow-md">
       {/* 
-        初期表示バー
+        初期表示バー（スクロール時も常に上部に表示）
         - PC時: タイトル入力、開閉ボタン、一括操作、コピー、保存を表示
         - スマホ時: リストタイトルなどは折りたたみ、初期状態では「設定ボタン」と「画像保存ボタン（+コピー）」のみがスッキリ表示されるレスポンシブ設計
       */}
-      <div className="p-2 sm:p-3 bg-gradient-to-r from-sky-50/90 via-white to-sky-50/90 flex items-center justify-between gap-2">
+      <div className="p-2 sm:p-3 bg-gradient-to-r from-sky-50/90 via-white to-sky-50/90 flex items-center justify-between gap-2 rounded-t-2xl">
         {/* 左側：設定ボタン ＆ PC用タイトル入力（スマホ時はタイトル入力を非表示にして折りたたみ内へ） */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <button
@@ -217,7 +217,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         - スマホ用のタイトル変更欄、一括選択ボタン、条件フィルター等をすべて内包
       */}
       {isOpen && (
-        <div className="border-t border-sky-100 bg-white divide-y divide-sky-100 text-xs">
+        <div className="border-t border-sky-100 bg-white divide-y divide-sky-100 text-xs max-h-[80vh] overflow-y-auto rounded-b-2xl">
           {/* スマホ時のみ表示するタイトル編集・一括操作バー */}
           <div className="p-3 bg-sky-50/40 flex flex-wrap items-center justify-between gap-2.5">
             <div className="w-full sm:hidden flex items-center gap-2">
@@ -394,7 +394,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 <span>◇ 表示設定</span>
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-slate-600 font-bold text-[11px] w-20 shrink-0">枠色:</span>
+                <span className="text-slate-600 font-bold text-[11px] shrink-0">枠色:</span>
                 {(
                   [
                     { mode: 'none', label: '標準' },
