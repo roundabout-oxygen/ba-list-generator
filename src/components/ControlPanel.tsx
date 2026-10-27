@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FilterConfig,
   CanvasStyleConfig,
@@ -71,6 +71,28 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const [isCopying, setIsCopying] = useState(false);
   const [isOpen, setIsOpen] = useState(false); // 初期は折りたたみ（設定ボタンと保存ボタンだけ表示）
   const [isPresetModalOpen, setIsPresetModalOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  // パネルが開いている時に外側をクリック・タップしたら自動で閉じる
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      // プリセット管理モーダルが開いている最中は閉じない
+      if (isPresetModalOpen) return;
+
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen, isPresetModalOpen]);
 
   const handleCopy = async () => {
     if (isCopying) return;
@@ -117,7 +139,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   };
 
   return (
-    <div className="sticky top-1 sm:top-2 z-40 bg-white/95 backdrop-blur-sm rounded-2xl border-2 border-sky-200 shadow-md">
+    <div
+      ref={panelRef}
+      className="sticky top-1 sm:top-2 z-40 bg-white/95 backdrop-blur-sm rounded-2xl border-2 border-sky-200 shadow-md"
+    >
       {/* 
         初期表示バー（スクロール時も常に上部に表示）
         - PC時: タイトル入力、開閉ボタン、一括操作、コピー、保存を表示
