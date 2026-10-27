@@ -154,25 +154,25 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
         {/* 右側：画像保存ボタン群（スマホでも初期表示） */}
         <div className="flex items-center gap-1.5 shrink-0">
-          {/* 画像コピー（スマホでも邪魔にならないよう配置） */}
+          {/* 画像コピー（PC表示のみ初期表示、スマホ時は設定を開いた中へ） */}
           <button
             type="button"
             onClick={handleCopy}
             disabled={isCopying}
-            className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 disabled:opacity-60 text-sky-800 text-xs font-extrabold transition shadow-sm active:scale-95"
+            className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 disabled:opacity-60 text-sky-800 text-xs font-extrabold transition shadow-sm active:scale-95"
             title="画像をクリップボードにコピー"
           >
             {copied ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-emerald-700 hidden sm:inline">完了!</span>
+                <span className="text-emerald-700">完了!</span>
               </>
             ) : isCopying ? (
               <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <Copy className="w-3.5 h-3.5 text-sky-600" />
-                <span className="hidden sm:inline">画像コピー</span>
+                <span>画像コピー</span>
               </>
             )}
           </button>
@@ -221,6 +221,28 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              {/* スマホ時のみ設定内にコピーボタンを配置 */}
+              <button
+                type="button"
+                onClick={handleCopy}
+                disabled={isCopying}
+                className="sm:hidden inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 disabled:opacity-60 text-sky-800 text-xs font-bold transition shadow-sm active:scale-95"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>コピー完了!</span>
+                  </>
+                ) : isCopying ? (
+                  <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-sky-600" />
+                    <span>画像コピー</span>
+                  </>
+                )}
+              </button>
+
               <button
                 type="button"
                 onClick={onClearAllUnowned}

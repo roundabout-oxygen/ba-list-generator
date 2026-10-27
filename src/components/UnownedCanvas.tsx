@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useLayoutEffect } from 'react';
 import { Character, CanvasStyleConfig } from '../types';
 import { CharacterIcon } from './CharacterIcon';
 
@@ -25,32 +25,37 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(1);
-  const [scaledHeight, setScaledHeight] = useState<number | undefined>(undefined);
+  const [wrapperHeight, setWrapperHeight] = useState<number | undefined>(undefined);
 
-  useEffect(() => {
-    const updateScale = () => {
+  // useLayoutEffectでレンダリング直後にサイズを正確に再計算し、下部要素への重なりを100%防止
+  useLayoutEffect(() => {
+    const updateSize = () => {
       if (!wrapperRef.current) return;
       const containerWidth = wrapperRef.current.clientWidth;
+      let s = 1;
       if (containerWidth > 0 && containerWidth < ORIGINAL_WIDTH) {
-        const s = containerWidth / ORIGINAL_WIDTH;
-        setScale(s);
-        if (canvasRef.current) {
-          setScaledHeight(canvasRef.current.offsetHeight * s);
+        s = containerWidth / ORIGINAL_WIDTH;
+      }
+      setScale(s);
+
+      if (canvasRef.current) {
+        const naturalH = canvasRef.current.offsetHeight;
+        if (naturalH > 0) {
+          // transform: scale() を適用しても親要素の高さを縮小後の高さ（naturalH * s）に合わせることで
+          // 次の要素（生徒リスト）が一切被らず自然に下に押し出される
+          setWrapperHeight(Math.ceil(naturalH * s));
         }
-      } else {
-        setScale(1);
-        setScaledHeight(undefined);
       }
     };
 
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    const observer = new ResizeObserver(updateScale);
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    const observer = new ResizeObserver(updateSize);
     if (wrapperRef.current) observer.observe(wrapperRef.current);
     if (canvasRef.current) observer.observe(canvasRef.current);
 
     return () => {
-      window.removeEventListener('resize', updateScale);
+      window.removeEventListener('resize', updateSize);
       observer.disconnect();
     };
   }, [unownedCharacters, styleConfig]);
@@ -60,14 +65,14 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
       {/* 
         外側レスポンシブコンテナ
         - 横幅最大100%
-        - 高さは scale 適用時の実高さを反映（初期値は auto）
+        - 高さは scale 適用後の実高さを強制適用し、マージン下部を確保してリストとの重なりを防止
       */}
       <div
         ref={wrapperRef}
         className="w-full max-w-[548px] flex justify-center overflow-visible"
         style={{
-          height: scaledHeight !== undefined ? `${scaledHeight}px` : 'auto',
-          minHeight: '60px',
+          height: wrapperHeight !== undefined ? `${wrapperHeight}px` : 'auto',
+          marginBottom: scale < 1 ? '8px' : '0px',
         }}
       >
         {/* 
