@@ -4,7 +4,7 @@ import { ATTACK_COLORS, DEFENSE_COLORS } from '../utils/constants';
 
 interface CharacterIconProps {
   character: Character;
-  size?: number;
+  size?: number; // 指定なしの場合は親要素の横幅100%に追従
   borderRadius?: number;
   borderWidth?: number;
   borderColorMode?: BorderColorMode;
@@ -18,7 +18,7 @@ interface CharacterIconProps {
 
 export const CharacterIcon: React.FC<CharacterIconProps> = ({
   character,
-  size = 60,
+  size,
   borderRadius = 8,
   borderWidth = 2,
   borderColorMode = 'none',
@@ -49,14 +49,14 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
   return (
     <div
       onClick={(e) => onClick?.(character, e)}
-      className="inline-flex flex-col items-center select-none group"
-      style={{ width: `${size}px` }}
+      className="flex flex-col items-center select-none group w-full"
+      style={size ? { width: `${size}px` } : undefined}
       title={tooltip}
     >
       <div
         style={{
-          width: `${size}px`,
-          height: `${size}px`,
+          width: size ? `${size}px` : '100%',
+          aspectRatio: '1 / 1',
           borderRadius: `${borderRadius}px`,
           borderWidth: `${effectiveBorderWidth}px`,
           borderStyle: effectiveBorderWidth > 0 ? 'solid' : 'none',
@@ -77,7 +77,6 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
         <img
           src={character.icon}
           alt={character.name}
-          style={{ aspectRatio: '1 / 1' }}
           className={`w-full h-full object-cover pointer-events-none block transition-all duration-150 ${
             isGrayed ? 'grayscale brightness-[0.45] contrast-125' : ''
           }`}
@@ -85,10 +84,10 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
           draggable={false}
         />
 
-        {/* 端の馴染ませ用ソフトインナーシャドウ (ba-icon-canvas 準拠) */}
+        {/* 端の馴染ませ用ソフトインナーシャドウ */}
         <div className="absolute inset-0 pointer-events-none rounded-[inherit] ring-1 ring-inset ring-black/10" />
 
-        {/* 攻撃・防御のインジケータードット (ba-icon-canvas 準拠) */}
+        {/* 攻撃・防御のインジケータードット */}
         {showIndicatorDots && (
           <div className="absolute top-1 left-1 flex gap-0.5 pointer-events-none z-10">
             <span
@@ -106,9 +105,8 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
         {isGrayed && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 bg-slate-900/35">
             <span
-              className="font-rounded font-black text-white select-none tracking-wider flex items-center justify-center rounded-md px-1.5 py-0.5"
+              className="font-rounded font-black text-white select-none tracking-wider flex items-center justify-center rounded-md px-1.5 py-0.5 text-base sm:text-xl"
               style={{
-                fontSize: `${Math.max(14, Math.round(size * 0.36))}px`,
                 lineHeight: 1,
                 textShadow: '0 2px 6px rgba(0,0,0,0.85), 0 0 2px rgba(0,0,0,0.95)',
               }}
@@ -125,7 +123,7 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
           className={`mt-1 w-full text-center truncate font-bold leading-tight ${
             isGrayed ? 'text-slate-400' : 'text-slate-700'
           }`}
-          style={{ fontSize: `${Math.max(9, Math.round(size * 0.16))}px` }}
+          style={{ fontSize: `${Math.max(9, Math.round((size || 60) * 0.16))}px` }}
         >
           {character.name}
         </span>
