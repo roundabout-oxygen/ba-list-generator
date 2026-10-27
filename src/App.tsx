@@ -10,7 +10,7 @@ import { UnownedCanvas } from './components/UnownedCanvas';
 import { CharacterSelectorList } from './components/CharacterSelectorList';
 
 const STORAGE_KEY_UNOWNED = 'ba_unowned_checker_unowned_names_v2';
-const STORAGE_KEY_STYLE = 'ba_unowned_checker_style_v2';
+const STORAGE_KEY_STYLE = 'ba_unowned_checker_style_v3';
 const STORAGE_KEY_FILTER = 'ba_unowned_checker_filter_v2';
 const STORAGE_KEY_PRESETS = 'ba_list_generator_presets_v1';
 
@@ -42,7 +42,7 @@ const DEFAULT_STYLE: CanvasStyleConfig = {
   title: '未所持確定チケット候補生徒',
   borderRadius: 6,
   borderWidth: 2,
-  borderColorMode: 'none',
+  borderColorMode: 'role',
   strikerColumns: 4,
   specialColumns: 2,
   listStrikerColumns: 8,

@@ -19,7 +19,7 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
   size,
   borderRadius = 8,
   borderWidth = 2,
-  borderColorMode = 'none',
+  borderColorMode = 'role',
   isUnowned = false,
   showUnownedOverlay = false,
   onClick,
