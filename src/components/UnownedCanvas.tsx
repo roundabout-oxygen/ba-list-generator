@@ -35,16 +35,15 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
       >
         {/* 
           枠内本体
-          - 背景色: かなり薄い水色 (bg-[#f4faff])
-          - 外枠ボーダー: 薄い青 (#7dd3fc または border-sky-300) で背景・透過境界をくっきり視認可能に
-          - 幅: 内側パディング(14px*2) + STRIKER 4列(328px) + 余白(12px) + 仕切り線(1.5px) + 余白(12px) + SPECIAL 2列(160px) = 541.5px (約542px)
-          - 高さ: min-h-[420px] h-auto
+          - 横幅固定: 542px
+          - 高さ: min-h の固定（420px等）を撤廃し、h-auto で行数（1行〜複数行）に応じて自然に伸縮
+          - 4行以下の時は高さをギュッと減らし、5行以上の時は自然に拡張して無駄な余白ゼロを実現
         */}
         <div
           style={{ width: '542px' }}
-          className="min-h-[420px] h-auto rounded-xl border border-sky-300 bg-[#f4faff] shadow-sm p-3.5 font-rounded flex flex-col box-border select-none"
+          className="h-auto rounded-xl border border-sky-300 bg-[#f4faff] shadow-sm p-3.5 font-rounded flex flex-col box-border select-none"
         >
-          {/* タイトル行：仕切り線の色を濃く (border-sky-200) */}
+          {/* タイトル行 */}
           <div className="pt-1 pb-3 mb-3 border-b-2 border-sky-200 flex items-center justify-between shrink-0">
             <h2 className="text-lg font-black text-slate-800 tracking-tight truncate">
               {styleConfig.title || '未所持確定チケット候補生徒'}
@@ -60,7 +59,7 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
             - 中央：少し余白(左右12px)を設けた上で、濃い水色の独立した垂直仕切り線 (w-[1.5px] bg-sky-300) を配置
             - 右：SPECIAL 2列 (76*2 + 8*1 = 160px)
           */}
-          <div className="flex-1 flex justify-center items-stretch">
+          <div className="flex justify-center items-stretch">
             {/* 左：STRIKER（4人固定、幅328px） */}
             <div style={{ width: '328px' }} className="shrink-0">
               {strikers.length > 0 ? (
@@ -86,7 +85,7 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
                   ))}
                 </div>
               ) : (
-                <div className="h-40 flex items-center justify-center text-slate-400 text-xs font-bold">
+                <div className="h-20 flex items-center justify-center text-slate-400 text-xs font-bold">
                   STRIKER なし
                 </div>
               )}
@@ -122,7 +121,7 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
                   ))}
                 </div>
               ) : (
-                <div className="h-40 flex items-center justify-center text-slate-400 text-xs font-bold">
+                <div className="h-20 flex items-center justify-center text-slate-400 text-xs font-bold">
                   SPECIAL なし
                 </div>
               )}
