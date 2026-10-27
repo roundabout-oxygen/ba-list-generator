@@ -8,7 +8,6 @@ interface CharacterIconProps {
   borderRadius?: number;
   borderWidth?: number;
   borderColorMode?: BorderColorMode;
-  showIndicatorDots?: boolean;
   showCharacterName?: boolean;
   isUnowned?: boolean; // 下部リストでの「未」グレー表示用
   showUnownedOverlay?: boolean; // true のとき isUnowned ならグレー＋「未」を表示
@@ -22,7 +21,6 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
   borderRadius = 8,
   borderWidth = 2,
   borderColorMode = 'none',
-  showIndicatorDots = false,
   showCharacterName = false,
   isUnowned = false,
   showUnownedOverlay = false,
@@ -86,20 +84,6 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
 
         {/* 端の馴染ませ用ソフトインナーシャドウ */}
         <div className="absolute inset-0 pointer-events-none rounded-[inherit] ring-1 ring-inset ring-black/10" />
-
-        {/* 攻撃・防御のインジケータードット */}
-        {showIndicatorDots && (
-          <div className="absolute top-1 left-1 flex gap-0.5 pointer-events-none z-10">
-            <span
-              className="w-2 h-2 rounded-full shadow border border-white/80"
-              style={{ backgroundColor: atkColor }}
-            />
-            <span
-              className="w-2 h-2 rounded-full shadow border border-white/80"
-              style={{ backgroundColor: defColor }}
-            />
-          </div>
-        )}
 
         {/* 下部リストで未所持選択された際の「未」オーバーレイ表示 */}
         {isGrayed && (

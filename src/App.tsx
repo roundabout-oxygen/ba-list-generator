@@ -43,15 +43,16 @@ const DEFAULT_STYLE: CanvasStyleConfig = {
   subtitle: '',
   showCount: true,
   showDateCondition: true,
-  iconSize: 52, // 下部リスト用の設定
+  iconSize: 52,
   borderRadius: 6,
   borderWidth: 2,
   borderColorMode: 'none',
-  showIndicatorDots: false, // デフォルトは属性ドットなし
   showCharacterName: false,
   columnsPerRole: 0,
   strikerColumns: 4,
   specialColumns: 2,
+  listStrikerColumns: 8,
+  listSpecialColumns: 4,
 };
 
 export const App: React.FC = () => {
@@ -407,6 +408,7 @@ export const App: React.FC = () => {
             characters={filteredCharacters}
             unownedIds={unownedIds}
             styleConfig={styleConfig}
+            onChangeStyle={setStyleConfig}
             onToggleUnowned={handleToggleUnowned}
             listRef={listRef}
             onExportListPng={handleExportListPng}

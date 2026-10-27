@@ -400,7 +400,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     { mode: 'none', label: '標準' },
                     { mode: 'attack', label: '攻撃属性' },
                     { mode: 'defense', label: '防御属性' },
-                    { mode: 'role', label: '部隊(赤/青)' },
+                    { mode: 'role', label: '役割' },
                   ] as { mode: BorderColorMode; label: string }[]
                 ).map(({ mode, label }) => (
                   <button
@@ -426,24 +426,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-slate-600 font-bold text-[11px]">サイズ:</span>
-                  <input
-                    type="range"
-                    min={40}
-                    max={72}
-                    step={2}
-                    value={styleConfig.iconSize}
-                    onChange={(e) =>
-                      onChangeStyle({ ...styleConfig, iconSize: Number(e.target.value) })
-                    }
-                    className="accent-sky-500 w-20"
-                  />
-                  <span className="font-mono font-bold text-slate-700 text-xs w-8">
-                    {styleConfig.iconSize}px
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1.5">
                   <span className="text-slate-600 font-bold text-[11px]">角丸:</span>
                   <input
                     type="range"
@@ -454,29 +436,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     onChange={(e) =>
                       onChangeStyle({ ...styleConfig, borderRadius: Number(e.target.value) })
                     }
-                    className="accent-sky-500 w-16"
+                    className="accent-sky-500 w-20"
                   />
                   <span className="font-mono font-bold text-slate-700 text-xs w-6">
                     {styleConfig.borderRadius}px
                   </span>
                 </div>
-
-                <label className="inline-flex items-center gap-1 cursor-pointer font-bold text-slate-700 text-[11px]">
-                  <input
-                    type="checkbox"
-                    checked={styleConfig.showIndicatorDots}
-                    onChange={(e) =>
-                      onChangeStyle({ ...styleConfig, showIndicatorDots: e.target.checked })
-                    }
-                    className="accent-sky-500 rounded"
-                  />
-                  <span>属性ドット</span>
-                </label>
               </div>
 
               {/* キャンバス列数設定（デフォルト: STRIKER 4列 - SPECIAL 2列） */}
               <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-sky-200">
-                <span className="text-slate-600 font-bold text-[11px] shrink-0">表示列数:</span>
+                <span className="text-slate-600 font-bold text-[11px] shrink-0">列数:</span>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
                   <span className="text-[11px] text-sky-800 font-bold">STRIKER</span>
                   <select
