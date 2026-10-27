@@ -386,108 +386,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
           </div>
 
-          {/* 詳細設定（アイコン枠線・サイズ・属性・学校） */}
+          {/* 詳細設定（属性・学校・表示設定） */}
           <div className="p-3 bg-sky-50/50 grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* 左：表示設定（外枠色を変えて枠内に◇表示設定と書いて他と差別化） */}
-            <div className="bg-sky-50/70 p-2.5 rounded-xl border-2 border-sky-400 shadow-sm space-y-2">
-              <div className="flex items-center gap-1.5 pb-1 border-b border-sky-200 text-sky-800 font-extrabold text-xs">
-                <span>◇ 表示設定</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-slate-600 font-bold text-[11px] shrink-0">枠色:</span>
-                {(
-                  [
-                    { mode: 'none', label: '標準' },
-                    { mode: 'attack', label: '攻撃属性' },
-                    { mode: 'defense', label: '防御属性' },
-                    { mode: 'role', label: '役割' },
-                  ] as { mode: BorderColorMode; label: string }[]
-                ).map(({ mode, label }) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() =>
-                      onChangeStyle({
-                        ...styleConfig,
-                        borderColorMode: mode,
-                        borderWidth: mode === 'none' ? 1 : Math.max(2, styleConfig.borderWidth),
-                      })
-                    }
-                    className={`px-2 py-0.5 rounded-lg font-bold transition text-xs ${
-                      styleConfig.borderColorMode === mode
-                        ? 'bg-sky-500 text-white shadow-sm'
-                        : 'bg-sky-50 text-slate-600 hover:bg-sky-100'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-600 font-bold text-[11px]">角丸:</span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={24}
-                    step={2}
-                    value={styleConfig.borderRadius}
-                    onChange={(e) =>
-                      onChangeStyle({ ...styleConfig, borderRadius: Number(e.target.value) })
-                    }
-                    className="accent-sky-500 w-20"
-                  />
-                  <span className="font-mono font-bold text-slate-700 text-xs w-6">
-                    {styleConfig.borderRadius}px
-                  </span>
-                </div>
-              </div>
-
-              {/* キャンバス列数設定（デフォルト: STRIKER 4列 - SPECIAL 2列） */}
-              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-sky-200">
-                <span className="text-slate-600 font-bold text-[11px] shrink-0">列数:</span>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                  <span className="text-[11px] text-sky-800 font-bold">STRIKER</span>
-                  <select
-                    value={styleConfig.strikerColumns ?? 4}
-                    onChange={(e) =>
-                      onChangeStyle({
-                        ...styleConfig,
-                        strikerColumns: Number(e.target.value),
-                      })
-                    }
-                    className="border border-sky-300 rounded px-1.5 py-0.5 font-bold text-slate-700 text-xs bg-white focus:outline-none focus:border-sky-500"
-                  >
-                    {[2, 3, 4, 5, 6, 7, 8].map((n) => (
-                      <option key={n} value={n}>
-                        {n}列
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-slate-400 font-normal">-</span>
-                  <span className="text-[11px] text-sky-800 font-bold">SPECIAL</span>
-                  <select
-                    value={styleConfig.specialColumns ?? 2}
-                    onChange={(e) =>
-                      onChangeStyle({
-                        ...styleConfig,
-                        specialColumns: Number(e.target.value),
-                      })
-                    }
-                    className="border border-sky-300 rounded px-1.5 py-0.5 font-bold text-slate-700 text-xs bg-white focus:outline-none focus:border-sky-500"
-                  >
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <option key={n} value={n}>
-                        {n}列
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* 右：属性・学校 */}
+            {/* PC:左 / スマホ:上 - 属性・学校 */}
             <div className="bg-white p-2.5 rounded-xl border border-sky-100 space-y-1.5">
               <div className="flex flex-wrap items-center gap-1">
                 <span className="text-slate-600 font-bold text-[11px] w-10 shrink-0">攻撃:</span>
@@ -586,6 +487,105 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 <span className="ml-auto text-slate-500 font-bold text-xs">
                   未所持: <strong className="text-sky-600">{unownedCount}</strong> / {totalFilteredCount}人
                 </span>
+              </div>
+            </div>
+
+            {/* PC:右 / スマホ:下 - 表示設定（外枠色を変えて枠内に◇表示設定と書いて他と差別化） */}
+            <div className="bg-sky-50/70 p-2.5 rounded-xl border-2 border-sky-400 shadow-sm space-y-2">
+              <div className="flex items-center gap-1.5 pb-1 border-b border-sky-200 text-sky-800 font-extrabold text-xs">
+                <span>◇ 表示設定</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-slate-600 font-bold text-[11px] shrink-0">枠色:</span>
+                {(
+                  [
+                    { mode: 'none', label: '標準' },
+                    { mode: 'attack', label: '攻撃属性' },
+                    { mode: 'defense', label: '防御属性' },
+                    { mode: 'role', label: '役割' },
+                  ] as { mode: BorderColorMode; label: string }[]
+                ).map(({ mode, label }) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() =>
+                      onChangeStyle({
+                        ...styleConfig,
+                        borderColorMode: mode,
+                        borderWidth: mode === 'none' ? 1 : Math.max(2, styleConfig.borderWidth),
+                      })
+                    }
+                    className={`px-2 py-0.5 rounded-lg font-bold transition text-xs ${
+                      styleConfig.borderColorMode === mode
+                        ? 'bg-sky-500 text-white shadow-sm'
+                        : 'bg-sky-50 text-slate-600 hover:bg-sky-100'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-600 font-bold text-[11px]">角丸:</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={24}
+                    step={2}
+                    value={styleConfig.borderRadius}
+                    onChange={(e) =>
+                      onChangeStyle({ ...styleConfig, borderRadius: Number(e.target.value) })
+                    }
+                    className="accent-sky-500 w-20"
+                  />
+                  <span className="font-mono font-bold text-slate-700 text-xs w-6">
+                    {styleConfig.borderRadius}px
+                  </span>
+                </div>
+              </div>
+
+              {/* キャンバス列数設定（デフォルト: STRIKER 4列 - SPECIAL 2列） */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-sky-200">
+                <span className="text-slate-600 font-bold text-[11px] shrink-0">列数:</span>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                  <span className="text-[11px] text-sky-800 font-bold">STRIKER</span>
+                  <select
+                    value={styleConfig.strikerColumns ?? 4}
+                    onChange={(e) =>
+                      onChangeStyle({
+                        ...styleConfig,
+                        strikerColumns: Number(e.target.value),
+                      })
+                    }
+                    className="border border-sky-300 rounded px-1.5 py-0.5 font-bold text-slate-700 text-xs bg-white focus:outline-none focus:border-sky-500"
+                  >
+                    {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+                      <option key={n} value={n}>
+                        {n}列
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-slate-400 font-normal">-</span>
+                  <span className="text-[11px] text-sky-800 font-bold">SPECIAL</span>
+                  <select
+                    value={styleConfig.specialColumns ?? 2}
+                    onChange={(e) =>
+                      onChangeStyle({
+                        ...styleConfig,
+                        specialColumns: Number(e.target.value),
+                      })
+                    }
+                    className="border border-sky-300 rounded px-1.5 py-0.5 font-bold text-slate-700 text-xs bg-white focus:outline-none focus:border-sky-500"
+                  >
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <option key={n} value={n}>
+                        {n}列
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
