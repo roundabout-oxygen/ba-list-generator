@@ -231,8 +231,8 @@ export const App: React.FC = () => {
       await document.fonts.ready;
       const dataUrl = await toPng(canvasRef.current, {
         pixelRatio: 2,
-        cacheBust: true,
-        // 外枠の外側を完全透過にするため backgroundColor は指定しない（transparent）
+        cacheBust: false,
+        skipAutoScale: true,
       });
       const link = document.createElement('a');
       link.download = `BA-Unowned-List-${filterConfig.maxDate || 'all'}.png`;
@@ -250,8 +250,8 @@ export const App: React.FC = () => {
       await document.fonts.ready;
       const blob = await toBlob(canvasRef.current, {
         pixelRatio: 2,
-        cacheBust: true,
-        // 外枠の外側を完全透過にするため backgroundColor は指定しない（transparent）
+        cacheBust: false,
+        skipAutoScale: true,
       });
       if (!blob) return false;
       await navigator.clipboard.write([

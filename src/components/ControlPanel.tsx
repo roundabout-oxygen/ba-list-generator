@@ -36,7 +36,7 @@ interface ControlPanelProps {
   onSelectAllUnowned: () => void;
   onClearAllUnowned: () => void;
   onResetDefaultFilter: () => void;
-  onExportPng: () => void;
+  onExportPng: () => Promise<void>;
   onCopyClipboard: () => Promise<boolean>;
 }
 
@@ -55,13 +55,31 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onCopyClipboard,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
   const [isOpen, setIsOpen] = useState(false); // 2行目以下を折りたたみ
 
   const handleCopy = async () => {
-    const ok = await onCopyClipboard();
-    if (ok) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+    if (isCopying) return;
+    setIsCopying(true);
+    try {
+      const ok = await onCopyClipboard();
+      if (ok) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  const handleExport = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      await onExportPng();
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -150,12 +168,18 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           <button
             type="button"
             onClick={handleCopy}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 text-sky-800 text-xs font-extrabold transition shadow-sm active:scale-95"
+            disabled={isCopying}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 disabled:opacity-60 text-sky-800 text-xs font-extrabold transition shadow-sm active:scale-95"
           >
             {copied ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-600" />
                 <span className="text-emerald-700">コピー完了!</span>
+              </>
+            ) : isCopying ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
+                <span>コピー中...</span>
               </>
             ) : (
               <>
@@ -168,11 +192,21 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           {/* 画像保存 */}
           <button
             type="button"
-            onClick={onExportPng}
-            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 text-white text-xs font-extrabold transition shadow-sm shadow-sky-200 active:scale-95"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 disabled:opacity-60 text-white text-xs font-extrabold transition shadow-sm shadow-sky-200 active:scale-95"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>画像保存</span>
+            {isExporting ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>保存中...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5" />
+                <span>画像保存</span>
+              </>
+            )}
           </button>
         </div>
       </div>
