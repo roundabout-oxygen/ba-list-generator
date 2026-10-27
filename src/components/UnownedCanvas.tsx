@@ -18,17 +18,24 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
   const strikers = unownedCharacters.filter((c) => c.role === 'STRIKER');
   const specials = unownedCharacters.filter((c) => c.role === 'SPECIAL');
 
+  const strikerColumns = styleConfig.strikerColumns || 4;
+  const specialColumns = styleConfig.specialColumns || 2;
+  const totalCols = strikerColumns + specialColumns;
+
+  // アイコンの大きさ（最大76px）は変えずに、列数に合わせてキャンバスの横幅を自動補正
+  // 4列-2列 (6列) の時は 6*76 + 4*8 + 60 = 548px
+  const maxCanvasWidth = totalCols * 76 + Math.max(0, totalCols - 2) * 8 + 60;
+
   return (
     <div className="w-full flex justify-center py-1">
       {/* 
         画像出力対象のルートコンテナ (canvasRef)
-        - CSS transform によるズレや被りを一切排除
-        - 幅: 最大548px、画面幅がそれより狭いスマホ時は w-full でぴったり100%収まる
-        - これにより通常のDOMフロー通り、行数が増えたら確実に下のリストを押し下げ、重なりが一切発生しません
+        - 列数に応じた最大幅を維持し、スマホ等の小画面では w-full で100%綺麗に収まる
       */}
       <div
         ref={canvasRef}
-        className="w-full max-w-[548px] p-[3px] bg-transparent inline-block box-border"
+        style={{ maxWidth: `${maxCanvasWidth}px` }}
+        className="w-full p-[3px] bg-transparent inline-block box-border transition-all"
       >
         {/* 
           枠内本体
@@ -46,16 +53,20 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
 
           {/* 
             キャンバス内アイコンエリア
-            - 左：STRIKER 4列 (4fr)
-            - 中央：仕切り線 (px-1.5〜3)
-            - 右：SPECIAL 2列 (2fr)
-            - 画面幅に応じて4:2の比率を維持したまま各アイコンが自然に縮小フィット
+            - 左：STRIKER (strikerColumns 列)
+            - 中央：仕切り線
+            - 右：SPECIAL (specialColumns 列)
           */}
           <div className="flex justify-center items-stretch gap-1 sm:gap-2">
-            {/* 左：STRIKER 4列 */}
-            <div className="flex-[4] min-w-0">
+            {/* 左：STRIKER */}
+            <div style={{ flex: strikerColumns }} className="min-w-0">
               {strikers.length > 0 ? (
-                <div className="grid grid-cols-4 gap-1 sm:gap-2 content-start">
+                <div
+                  className="grid gap-1 sm:gap-2 content-start"
+                  style={{
+                    gridTemplateColumns: `repeat(${strikerColumns}, minmax(0, 1fr))`,
+                  }}
+                >
                   {strikers.map((char) => (
                     <div key={char.id} className="w-full max-w-[76px] mx-auto">
                       <CharacterIcon
@@ -86,10 +97,15 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
               <div className="w-[1.5px] bg-sky-300 h-full rounded-full self-stretch" />
             </div>
 
-            {/* 右：SPECIAL 2列 */}
-            <div className="flex-[2] min-w-0">
+            {/* 右：SPECIAL */}
+            <div style={{ flex: specialColumns }} className="min-w-0">
               {specials.length > 0 ? (
-                <div className="grid grid-cols-2 gap-1 sm:gap-2 content-start">
+                <div
+                  className="grid gap-1 sm:gap-2 content-start"
+                  style={{
+                    gridTemplateColumns: `repeat(${specialColumns}, minmax(0, 1fr))`,
+                  }}
+                >
                   {specials.map((char) => (
                     <div key={char.id} className="w-full max-w-[76px] mx-auto">
                       <CharacterIcon

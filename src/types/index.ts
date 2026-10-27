@@ -71,4 +71,6 @@ export interface CanvasStyleConfig {
   showIndicatorDots: boolean;
   showCharacterName: boolean;
   columnsPerRole: number; // 0 = auto, or 5..12
+  strikerColumns: number; // default 4 (2..8)
+  specialColumns: number; // default 2 (1..5)
 }

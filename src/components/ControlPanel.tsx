@@ -11,6 +11,7 @@ import {
   DEFAULT_MAX_DATE,
   ATTACK_COLORS,
   DEFENSE_COLORS,
+  DEFENSE_SHORT_LABELS,
 } from '../utils/constants';
 import { PresetModal } from './PresetModal';
 import {
@@ -472,6 +473,48 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   <span>属性ドット</span>
                 </label>
               </div>
+
+              {/* キャンバス列数設定（デフォルト: STRIKER 4列 - SPECIAL 2列） */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-sky-200">
+                <span className="text-slate-600 font-bold text-[11px] shrink-0">表示列数:</span>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                  <span className="text-[11px] text-sky-800 font-bold">STRIKER</span>
+                  <select
+                    value={styleConfig.strikerColumns ?? 4}
+                    onChange={(e) =>
+                      onChangeStyle({
+                        ...styleConfig,
+                        strikerColumns: Number(e.target.value),
+                      })
+                    }
+                    className="border border-sky-300 rounded px-1.5 py-0.5 font-bold text-slate-700 text-xs bg-white focus:outline-none focus:border-sky-500"
+                  >
+                    {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+                      <option key={n} value={n}>
+                        {n}列
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-slate-400 font-normal">-</span>
+                  <span className="text-[11px] text-sky-800 font-bold">SPECIAL</span>
+                  <select
+                    value={styleConfig.specialColumns ?? 2}
+                    onChange={(e) =>
+                      onChangeStyle({
+                        ...styleConfig,
+                        specialColumns: Number(e.target.value),
+                      })
+                    }
+                    className="border border-sky-300 rounded px-1.5 py-0.5 font-bold text-slate-700 text-xs bg-white focus:outline-none focus:border-sky-500"
+                  >
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <option key={n} value={n}>
+                        {n}列
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
             {/* 右：属性・学校 */}
@@ -507,7 +550,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                         color: active ? '#fff' : col.text,
                         borderColor: col.border,
                       }}
-                      className="px-2 py-0.5 rounded text-[11px] font-extrabold border transition"
+                      className="px-2 py-0.5 min-w-[38px] text-center rounded text-[11px] font-extrabold border transition"
                     >
                       {atk}
                     </button>
@@ -546,9 +589,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                         color: active ? '#fff' : col.text,
                         borderColor: col.border,
                       }}
-                      className="px-2 py-0.5 rounded text-[11px] font-extrabold border transition"
+                      className="px-2 py-0.5 min-w-[38px] text-center rounded text-[11px] font-extrabold border transition"
                     >
-                      {def}
+                      {DEFENSE_SHORT_LABELS[def] || def}
                     </button>
                   );
                 })}

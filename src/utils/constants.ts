@@ -20,6 +20,14 @@ export const DEFENSE_COLORS: Record<string, { bg: string; text: string; border: 
   '複合装甲': { bg: '#d1fae5', text: '#059669', border: '#10b981' },
 };
 
+export const DEFENSE_SHORT_LABELS: Record<string, string> = {
+  '軽装備': '軽装',
+  '重装甲': '重装',
+  '特殊装甲': '特殊',
+  '弾力装甲': '弾力',
+  '複合装甲': '複合',
+};
+
 export const RECRUITMENT_OPTIONS: {
   type: RecruitmentType;
   label: string;

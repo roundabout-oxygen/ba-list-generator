@@ -1,12 +1,16 @@
 import React, { useMemo } from 'react';
 import { Character, CanvasStyleConfig } from '../types';
 import { CharacterIcon } from './CharacterIcon';
+import { Download } from 'lucide-react';
 
 interface CharacterSelectorListProps {
   characters: Character[];
   unownedIds: Set<string>;
   styleConfig: CanvasStyleConfig;
   onToggleUnowned: (char: Character) => void;
+  listRef?: React.RefObject<HTMLDivElement | null>;
+  onExportListPng?: () => Promise<void>;
+  isExportingList?: boolean;
 }
 
 export const CharacterSelectorList: React.FC<CharacterSelectorListProps> = ({
@@ -14,6 +18,9 @@ export const CharacterSelectorList: React.FC<CharacterSelectorListProps> = ({
   unownedIds,
   styleConfig,
   onToggleUnowned,
+  listRef,
+  onExportListPng,
+  isExportingList = false,
 }) => {
   // 実装年ごとにグループ化
   // 要求：下部リストは「最近のが手前の左上に来る並び」（年：2026年→古い年、各年内も新しい順）
@@ -59,63 +66,114 @@ export const CharacterSelectorList: React.FC<CharacterSelectorListProps> = ({
   }
 
   return (
-    /* 1つの枠に収める */
-    <div className="bg-white rounded-xl border border-sky-200 p-3 shadow-sm divide-y divide-sky-100">
-      {yearGroups.map(({ year, strikers, specials }) => (
-        <div key={year} className="py-2.5 first:pt-0 last:pb-0">
-          {/* 年ラベル（小分けの箱にはせず、シンプルな区切りラベルのみ） */}
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] font-black text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
-              {year > 0 ? `${year}年` : 'その他'}
+    <div className="space-y-3">
+      {/* 
+        画像保存対象のリスト枠コンテナ (listRef)
+        - 周囲に十分なパディング（p-3.5 sm:p-5）を確保し、端が欠けずに綺麗に画像出力
+      */}
+      <div
+        ref={listRef}
+        className="bg-white rounded-xl border border-sky-200 p-3.5 sm:p-5 shadow-sm font-rounded space-y-2.5 box-border"
+      >
+        {/* リストタイトルヘッダー（画像保存時にも何の一覧か分かるように表示） */}
+        <div className="pb-2 border-b-2 border-sky-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-black text-sm text-slate-800">
+              {styleConfig.title ? `${styleConfig.title}（生徒一覧）` : '対象生徒一覧リスト'}
             </span>
-            <div className="h-px bg-sky-100 flex-1" />
           </div>
-
-          {/* 左右2列（左65%：STRIKER、右35%：SPECIAL） */}
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: '65% 35%' }}
-          >
-            {/* 左：STRIKER（最新が手前・左上） */}
-            <div className="flex flex-wrap gap-1 content-start pr-1.5 border-r border-sky-100 min-h-[44px]">
-              {strikers.map((char) => (
-                <CharacterIcon
-                  key={char.id}
-                  character={char}
-                  size={styleConfig.iconSize}
-                  borderRadius={styleConfig.borderRadius}
-                  borderWidth={styleConfig.borderWidth}
-                  borderColorMode={styleConfig.borderColorMode}
-                  showIndicatorDots={styleConfig.showIndicatorDots}
-                  showCharacterName={false}
-                  isUnowned={unownedIds.has(char.id)}
-                  showUnownedOverlay={true}
-                  onClick={onToggleUnowned}
-                />
-              ))}
-            </div>
-
-            {/* 右：SPECIAL（最新が手前・左上） */}
-            <div className="flex flex-wrap gap-1 content-start pl-1 min-h-[44px]">
-              {specials.map((char) => (
-                <CharacterIcon
-                  key={char.id}
-                  character={char}
-                  size={styleConfig.iconSize}
-                  borderRadius={styleConfig.borderRadius}
-                  borderWidth={styleConfig.borderWidth}
-                  borderColorMode={styleConfig.borderColorMode}
-                  showIndicatorDots={styleConfig.showIndicatorDots}
-                  showCharacterName={false}
-                  isUnowned={unownedIds.has(char.id)}
-                  showUnownedOverlay={true}
-                  onClick={onToggleUnowned}
-                />
-              ))}
-            </div>
+          <div className="text-xs font-bold text-slate-500">
+            全 <strong className="text-sky-700">{characters.length}</strong> 人 / 未所持{' '}
+            <strong className="text-rose-500">{unownedIds.size}</strong> 人
           </div>
         </div>
-      ))}
+
+        {/* 年ごとのグループ一覧 */}
+        <div className="divide-y divide-sky-100">
+          {yearGroups.map(({ year, strikers, specials }) => (
+            <div key={year} className="py-2.5 first:pt-0 last:pb-0">
+              {/* 年ラベル */}
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[11px] font-black text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
+                  {year > 0 ? `${year}年` : 'その他'}
+                </span>
+                <div className="h-px bg-sky-100 flex-1" />
+              </div>
+
+              {/* 左右2列（左65%：STRIKER、右35%：SPECIAL） */}
+              <div
+                className="grid gap-3"
+                style={{ gridTemplateColumns: '65% 35%' }}
+              >
+                {/* 左：STRIKER（最新が手前・左上） */}
+                <div className="flex flex-wrap gap-1 content-start pr-1.5 border-r border-sky-100 min-h-[44px]">
+                  {strikers.map((char) => (
+                    <CharacterIcon
+                      key={char.id}
+                      character={char}
+                      size={styleConfig.iconSize}
+                      borderRadius={styleConfig.borderRadius}
+                      borderWidth={styleConfig.borderWidth}
+                      borderColorMode={styleConfig.borderColorMode}
+                      showIndicatorDots={styleConfig.showIndicatorDots}
+                      showCharacterName={false}
+                      isUnowned={unownedIds.has(char.id)}
+                      showUnownedOverlay={true}
+                      onClick={onToggleUnowned}
+                    />
+                  ))}
+                </div>
+
+                {/* 右：SPECIAL（最新が手前・左上） */}
+                <div className="flex flex-wrap gap-1 content-start pl-1 min-h-[44px]">
+                  {specials.map((char) => (
+                    <CharacterIcon
+                      key={char.id}
+                      character={char}
+                      size={styleConfig.iconSize}
+                      borderRadius={styleConfig.borderRadius}
+                      borderWidth={styleConfig.borderWidth}
+                      borderColorMode={styleConfig.borderColorMode}
+                      showIndicatorDots={styleConfig.showIndicatorDots}
+                      showCharacterName={false}
+                      isUnowned={unownedIds.has(char.id)}
+                      showUnownedOverlay={true}
+                      onClick={onToggleUnowned}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 
+        画面下部の生徒リストの一番下に配置する「リスト画像保存」ボタン
+        - 画像保存枠（listRef）の外側にあるため、出力画像には含まれません
+      */}
+      {onExportListPng && (
+        <div className="flex justify-center pt-1 pb-4">
+          <button
+            type="button"
+            onClick={onExportListPng}
+            disabled={isExportingList}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 disabled:opacity-60 text-white text-xs font-black transition shadow-md shadow-sky-200 active:scale-95"
+          >
+            {isExportingList ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>リスト画像を出力中...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                <span>生徒リスト画像を保存（PNG）</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

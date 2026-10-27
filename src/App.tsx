@@ -50,6 +50,8 @@ const DEFAULT_STYLE: CanvasStyleConfig = {
   showIndicatorDots: false, // デフォルトは属性ドットなし
   showCharacterName: false,
   columnsPerRole: 0,
+  strikerColumns: 4,
+  specialColumns: 2,
 };
 
 export const App: React.FC = () => {
@@ -108,6 +110,8 @@ export const App: React.FC = () => {
   });
 
   const canvasRef = useRef<HTMLDivElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const [isExportingList, setIsExportingList] = useState(false);
 
   // キャラクターデータの読み込み
   useEffect(() => {
@@ -316,6 +320,28 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleExportListPng = async () => {
+    if (!listRef.current) return;
+    setIsExportingList(true);
+    try {
+      await document.fonts.ready;
+      const dataUrl = await toPng(listRef.current, {
+        pixelRatio: 2,
+        cacheBust: false,
+        skipAutoScale: true,
+      });
+      const link = document.createElement('a');
+      link.download = `BA-Student-List-${filterConfig.maxDate || 'all'}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Failed to export student list PNG:', err);
+      alert('生徒リスト画像の出力に失敗しました。');
+    } finally {
+      setIsExportingList(false);
+    }
+  };
+
   const handleCopyClipboard = async (): Promise<boolean> => {
     if (!canvasRef.current) return false;
     try {
@@ -382,6 +408,9 @@ export const App: React.FC = () => {
             unownedIds={unownedIds}
             styleConfig={styleConfig}
             onToggleUnowned={handleToggleUnowned}
+            listRef={listRef}
+            onExportListPng={handleExportListPng}
+            isExportingList={isExportingList}
           />
         )}
       </main>
