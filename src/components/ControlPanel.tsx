@@ -190,7 +190,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 type="text"
                 value={styleConfig.title}
                 onChange={(e) => onChangeStyle({ ...styleConfig, title: e.target.value })}
-                placeholder="未所持確定チケット候補生徒"
+                placeholder="未所属確定チケット候補生徒"
                 className="flex-1 max-w-sm px-3 py-1 rounded-xl border border-sky-200 bg-white text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400"
               />
             </div>
@@ -268,7 +268,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 type="text"
                 value={styleConfig.title}
                 onChange={(e) => onChangeStyle({ ...styleConfig, title: e.target.value })}
-                placeholder="未所持確定チケット候補生徒"
+                placeholder="未所属確定チケット候補生徒"
                 className="flex-1 px-2.5 py-1 rounded-xl border border-sky-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400"
               />
             </div>

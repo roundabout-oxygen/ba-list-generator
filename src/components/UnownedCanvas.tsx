@@ -44,7 +44,7 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
           {/* タイトル行 */}
           <div className="pt-0.5 pb-2 sm:pb-3 mb-2 sm:mb-3 border-b-2 border-sky-200 flex items-center justify-between shrink-0">
             <h2 className="text-base sm:text-lg font-black text-slate-800 tracking-tight truncate">
-              {styleConfig.title || '未所持確定チケット候補生徒'}
+              {styleConfig.title || '未所属確定チケット候補生徒'}
             </h2>
             <span className="text-xs sm:text-sm font-extrabold text-sky-700 shrink-0 ml-2 sm:ml-3">
               未所持：{unownedCharacters.length}人

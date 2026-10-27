@@ -28,8 +28,8 @@ const DEFAULT_FILTER: FilterConfig = {
 const DEFAULT_PRESETS: PresetConfig[] = [
   {
     id: 'preset_unowned_guaranteed',
-    name: '未所持確定チケ',
-    title: '未所持確定チケット候補生徒',
+    name: '未所属確定チケ',
+    title: '未所属確定チケット候補生徒',
     minDate: '',
     maxDate: DEFAULT_MAX_DATE,
     rarities: ['★3'],
@@ -39,7 +39,7 @@ const DEFAULT_PRESETS: PresetConfig[] = [
 ];
 
 const DEFAULT_STYLE: CanvasStyleConfig = {
-  title: '未所持確定チケット候補生徒',
+  title: '未所属確定チケット候補生徒',
   borderRadius: 6,
   borderWidth: 2,
   borderColorMode: 'role',
@@ -83,7 +83,11 @@ export const App: React.FC = () => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_STYLE);
       if (saved) {
-        return { ...DEFAULT_STYLE, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        if (parsed.title === '未所持確定チケット候補生徒') {
+          parsed.title = '未所属確定チケット候補生徒';
+        }
+        return { ...DEFAULT_STYLE, ...parsed };
       }
     } catch (e) {
       console.warn('Failed to load style config:', e);
@@ -96,7 +100,16 @@ export const App: React.FC = () => {
       const saved = localStorage.getItem(STORAGE_KEY_PRESETS);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((p: PresetConfig) => ({
+            ...p,
+            name: p.name === '未所持確定チケ' ? '未所属確定チケ' : p.name,
+            title:
+              p.title === '未所持確定チケット候補生徒'
+                ? '未所属確定チケット候補生徒'
+                : p.title,
+          }));
+        }
       }
     } catch (e) {
       console.warn('Failed to load presets:', e);
