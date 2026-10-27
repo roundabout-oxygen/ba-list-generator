@@ -57,7 +57,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const [copied, setCopied] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
-  const [isOpen, setIsOpen] = useState(false); // 2行目以下を折りたたみ
+  const [isOpen, setIsOpen] = useState(false); // 初期は折りたたみ（設定ボタンと保存ボタンだけ表示）
 
   const handleCopy = async () => {
     if (isCopying) return;
@@ -105,101 +105,89 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   return (
     <div className="bg-white rounded-2xl border-2 border-sky-200 shadow-sm overflow-hidden">
-      {/* 1行目：リストタイトル、開閉ボタン、全操作、画像コピー、画像保存 */}
-      <div className="p-3 bg-gradient-to-r from-sky-50/90 via-white to-sky-50/90 flex flex-wrap items-center justify-between gap-3">
-        {/* リストタイトル ＆ 右横の開閉ボタン */}
-        <div className="flex items-center gap-2 flex-1 min-w-[280px]">
-          <span className="text-xs font-extrabold text-sky-800 shrink-0">
-            リストタイトル:
-          </span>
-          <input
-            type="text"
-            value={styleConfig.title}
-            onChange={(e) => onChangeStyle({ ...styleConfig, title: e.target.value })}
-            placeholder="未所持確定チケット候補生徒"
-            className="flex-1 max-w-sm px-3 py-1 rounded-xl border border-sky-200 bg-white text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400"
-          />
-          {/* リストタイトルの右に配置した開閉ボタン */}
+      {/* 
+        初期表示バー
+        - PC時: タイトル入力、開閉ボタン、一括操作、コピー、保存を表示
+        - スマホ時: リストタイトルなどは折りたたみ、初期状態では「設定ボタン」と「画像保存ボタン（+コピー）」のみがスッキリ表示されるレスポンシブ設計
+      */}
+      <div className="p-2 sm:p-3 bg-gradient-to-r from-sky-50/90 via-white to-sky-50/90 flex items-center justify-between gap-2">
+        {/* 左側：設定ボタン ＆ PC用タイトル入力（スマホ時はタイトル入力を非表示にして折りたたみ内へ） */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold transition shadow-sm ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition shadow-sm shrink-0 active:scale-95 ${
               isOpen
                 ? 'bg-sky-500 text-white border-sky-500'
-                : 'bg-white text-sky-700 border-sky-200 hover:bg-sky-50'
+                : 'bg-white text-sky-700 border-sky-300 hover:bg-sky-50'
             }`}
-            title="条件・設定フィルターの開閉"
+            title="設定・条件フィルターを開閉"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">設定・条件</span>
+            <SlidersHorizontal className="w-4 h-4" />
+            <span>設定</span>
             {isOpen ? (
               <ChevronUp className="w-3.5 h-3.5" />
             ) : (
               <ChevronDown className="w-3.5 h-3.5" />
             )}
           </button>
+
+          {/* PC版のみ一行目にタイトル入力欄を表示 */}
+          <div className="hidden sm:flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-xs font-extrabold text-sky-800 shrink-0">
+              タイトル:
+            </span>
+            <input
+              type="text"
+              value={styleConfig.title}
+              onChange={(e) => onChangeStyle({ ...styleConfig, title: e.target.value })}
+              placeholder="未所持確定チケット候補生徒"
+              className="flex-1 max-w-sm px-3 py-1 rounded-xl border border-sky-200 bg-white text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            />
+          </div>
+
+          {/* スマホ時：現在のタイトル（省略表示） */}
+          <span className="sm:hidden text-xs font-extrabold text-slate-700 truncate">
+            {styleConfig.title}
+          </span>
         </div>
 
-        {/* アクションボタン群 */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            type="button"
-            onClick={onClearAllUnowned}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-sky-800 text-xs font-bold transition shadow-sm active:scale-95"
-            title="すべての生徒を所持済に戻します"
-          >
-            <Square className="w-3.5 h-3.5 text-sky-600" />
-            <span>全て所持済に戻す</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onSelectAllUnowned}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-sky-800 text-xs font-bold transition shadow-sm active:scale-95"
-            title="現在表示中の生徒をすべて未所持にします"
-          >
-            <CheckSquare className="w-3.5 h-3.5 text-sky-600" />
-            <span>全て未所持にする</span>
-          </button>
-
-          <div className="h-5 w-px bg-sky-200 mx-0.5 hidden sm:block" />
-
-          {/* 画像コピー */}
+        {/* 右側：画像保存ボタン群（スマホでも初期表示） */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* 画像コピー（スマホでも邪魔にならないよう配置） */}
           <button
             type="button"
             onClick={handleCopy}
             disabled={isCopying}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 disabled:opacity-60 text-sky-800 text-xs font-extrabold transition shadow-sm active:scale-95"
+            className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 disabled:opacity-60 text-sky-800 text-xs font-extrabold transition shadow-sm active:scale-95"
+            title="画像をクリップボードにコピー"
           >
             {copied ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-emerald-700">コピー完了!</span>
+                <span className="text-emerald-700 hidden sm:inline">完了!</span>
               </>
             ) : isCopying ? (
-              <>
-                <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
-                <span>コピー中...</span>
-              </>
+              <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <Copy className="w-3.5 h-3.5 text-sky-600" />
-                <span>画像コピー</span>
+                <span className="hidden sm:inline">画像コピー</span>
               </>
             )}
           </button>
 
-          {/* 画像保存 */}
+          {/* 画像保存（主役ボタン） */}
           <button
             type="button"
             onClick={handleExport}
             disabled={isExporting}
-            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 disabled:opacity-60 text-white text-xs font-extrabold transition shadow-sm shadow-sky-200 active:scale-95"
+            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 disabled:opacity-60 text-white text-xs font-extrabold transition shadow-sm shadow-sky-200 active:scale-95"
           >
             {isExporting ? (
               <>
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>保存中...</span>
+                <span>保存中</span>
               </>
             ) : (
               <>
@@ -211,9 +199,48 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </div>
       </div>
 
-      {/* 2行目以降：折りたたみ表示領域 */}
+      {/* 
+        展開エリア（設定ボタンを押した時に表示）
+        - スマホ用のタイトル変更欄、一括選択ボタン、条件フィルター等をすべて内包
+      */}
       {isOpen && (
         <div className="border-t border-sky-100 bg-white divide-y divide-sky-100 text-xs">
+          {/* スマホ時のみ表示するタイトル編集・一括操作バー */}
+          <div className="p-3 bg-sky-50/40 flex flex-wrap items-center justify-between gap-2.5">
+            <div className="w-full sm:hidden flex items-center gap-2">
+              <span className="text-xs font-extrabold text-sky-800 shrink-0">
+                リストタイトル:
+              </span>
+              <input
+                type="text"
+                value={styleConfig.title}
+                onChange={(e) => onChangeStyle({ ...styleConfig, title: e.target.value })}
+                placeholder="未所持確定チケット候補生徒"
+                className="flex-1 px-2.5 py-1 rounded-xl border border-sky-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <button
+                type="button"
+                onClick={onClearAllUnowned}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-sky-800 text-xs font-bold transition shadow-sm active:scale-95"
+              >
+                <Square className="w-3.5 h-3.5 text-sky-600" />
+                <span>全て所持済</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onSelectAllUnowned}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-sky-800 text-xs font-bold transition shadow-sm active:scale-95"
+              >
+                <CheckSquare className="w-3.5 h-3.5 text-sky-600" />
+                <span>全て未所持</span>
+              </button>
+            </div>
+          </div>
+
           {/* 基本フィルター（実装日・レアリティ・募集区分・検索・リセット） */}
           <div className="p-3 flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex flex-wrap items-center gap-2">
@@ -279,8 +306,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
 
             {/* 検索 ＆ リセット */}
-            <div className="flex items-center gap-2">
-              <div className="relative">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <div className="relative flex-1 sm:flex-initial">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
@@ -289,18 +316,18 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     onChangeFilter({ ...filterConfig, searchQuery: e.target.value })
                   }
                   placeholder="生徒名で検索..."
-                  className="pl-7 pr-2.5 py-1 rounded-xl border border-sky-200 bg-sky-50/40 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-sky-400 w-36 sm:w-44"
+                  className="w-full sm:w-44 pl-7 pr-2.5 py-1 rounded-xl border border-sky-200 bg-sky-50/40 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-sky-400"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={onResetDefaultFilter}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-slate-600 font-bold transition text-xs"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-slate-600 font-bold transition text-xs shrink-0"
                 title={`初期条件（${DEFAULT_MAX_DATE}までの恒常★3生徒）に戻す`}
               >
                 <RotateCcw className="w-3.5 h-3.5 text-sky-600" />
-                <span>条件リセット</span>
+                <span>リセット</span>
               </button>
             </div>
           </div>
@@ -345,8 +372,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   <span className="text-slate-600 font-bold text-[11px]">サイズ:</span>
                   <input
                     type="range"
-                    min={44}
-                    max={76}
+                    min={40}
+                    max={72}
                     step={2}
                     value={styleConfig.iconSize}
                     onChange={(e) =>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Character, CanvasStyleConfig } from '../types';
 import { CharacterIcon } from './CharacterIcon';
 
@@ -21,23 +21,67 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
   // キャンバス専用アイコンサイズ（76px固定）
   const CANVAS_ICON_SIZE = 76;
   const GAP = 8; // アイコン間の隙間 (8px)
+  const ORIGINAL_WIDTH = 548; // 外枠幅 542px + 左右マージン 6px = 548px
+
+  // 外側レスポンシブコンテナの幅を監視し、スマホ表示時に縮小スケールを計算
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [scale, setScale] = useState(1);
+  const [canvasHeight, setCanvasHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (!wrapperRef.current) return;
+      const availableWidth = wrapperRef.current.clientWidth;
+      if (availableWidth < ORIGINAL_WIDTH) {
+        // 画面幅（スマホ）に合わせて縮小（少し余白を持たせる）
+        const newScale = Math.max(0.4, (availableWidth - 8) / ORIGINAL_WIDTH);
+        setScale(newScale);
+      } else {
+        setScale(1);
+      }
+
+      if (canvasRef.current) {
+        setCanvasHeight(canvasRef.current.offsetHeight);
+      }
+    };
+
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    const observer = new ResizeObserver(updateSize);
+    if (wrapperRef.current) observer.observe(wrapperRef.current);
+    if (canvasRef.current) observer.observe(canvasRef.current);
+
+    return () => {
+      window.removeEventListener('resize', updateSize);
+      observer.disconnect();
+    };
+  }, [unownedCharacters, styleConfig]);
 
   return (
-    <div className="w-full flex justify-center overflow-x-auto py-1">
+    <div
+      ref={wrapperRef}
+      className="w-full flex justify-center overflow-hidden py-1"
+      style={{
+        // スマホで transform: scale() を適用した際、周囲の要素との重なりや隙間を防ぐため高さをスケール分で確保
+        height: scale < 1 && canvasHeight ? `${canvasHeight * scale}px` : 'auto',
+      }}
+    >
       {/* 
         画像出力対象のルートコンテナ (canvasRef)
-        - 外枠の外に3pxの余白を設ける (p-[3px])
-        - 外枠の外側は透過 (bg-transparent)
+        - 保存時はPC版と同一の高解像度・実寸（横幅542px）
+        - スマホなどの画面幅が狭い端末では CSS transform: scale() により画面幅にピッタリ自動リサイズ
       */}
       <div
         ref={canvasRef}
-        className="p-[3px] bg-transparent inline-block shrink-0 box-border"
+        className="p-[3px] bg-transparent inline-block shrink-0 box-border origin-top"
+        style={{
+          transform: scale < 1 ? `scale(${scale})` : undefined,
+        }}
       >
         {/* 
           枠内本体
           - 横幅固定: 542px
           - 高さ: min-h の固定（420px等）を撤廃し、h-auto で行数（1行〜複数行）に応じて自然に伸縮
-          - 4行以下の時は高さをギュッと減らし、5行以上の時は自然に拡張して無駄な余白ゼロを実現
         */}
         <div
           style={{ width: '542px' }}
