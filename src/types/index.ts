@@ -61,15 +61,9 @@ export interface PresetConfig {
 
 export interface CanvasStyleConfig {
   title: string;
-  subtitle: string;
-  showCount: boolean;
-  showDateCondition: boolean;
-  iconSize: number; // default 60
-  borderRadius: number; // default 8
+  borderRadius: number; // default 6
   borderWidth: number; // default 2
   borderColorMode: BorderColorMode;
-  showCharacterName: boolean;
-  columnsPerRole: number; // 0 = auto, or 5..12
   strikerColumns: number; // default 4 (2..8)
   specialColumns: number; // default 2 (1..5)
   listStrikerColumns?: number; // default 8 (PC版生徒リスト)

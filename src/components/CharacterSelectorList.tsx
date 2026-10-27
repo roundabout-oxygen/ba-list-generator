@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Character, CanvasStyleConfig } from '../types';
 import { CharacterIcon } from './CharacterIcon';
 import { Download, Settings, X } from 'lucide-react';
@@ -25,6 +25,7 @@ export const CharacterSelectorList: React.FC<CharacterSelectorListProps> = ({
   isExportingList = false,
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement | null>(null);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth < 640 : false
   );
@@ -34,6 +35,24 @@ export const CharacterSelectorList: React.FC<CharacterSelectorListProps> = ({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // PC版の⚙列数設定ポップオーバーが開いている時に外側をクリック・タップしたら閉じる
+  useEffect(() => {
+    if (!isSettingsOpen) return;
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setIsSettingsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isSettingsOpen]);
 
   // スマホ版ではキャンバスと同じ列数に合わせる。PC版では設定されたlistStrikerColumns / listSpecialColumns (デフォルト: 8列 - 4列)
   const strikerCols = isMobile
@@ -90,95 +109,94 @@ export const CharacterSelectorList: React.FC<CharacterSelectorListProps> = ({
     <div className="space-y-3">
       {/* 
         画像保存対象のリスト枠コンテナ (listRef)
-        - タイトルヘッダーは不要との要望により完全削除
-        - 周囲に十分なパディング（p-3 sm:p-4）を確保し、端が欠けずに綺麗に画像出力
+        - 上部キャンバスと同様に外側に p-[3px] の余白を持たせ、枠線や角丸が端で切れないようにする
       */}
       <div
         ref={listRef}
-        className="bg-white rounded-xl border border-sky-200 p-3 sm:p-4 shadow-sm font-rounded divide-y divide-sky-100 box-border"
+        className="w-full p-[3px] bg-transparent box-border"
       >
-        {yearGroups.map(({ year, strikers, specials }) => (
-          <div key={year} className="py-2.5 first:pt-0 last:pb-0">
-            {/* 年ラベル */}
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[11px] font-black text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
-                {year > 0 ? `${year}年` : 'その他'}
-              </span>
-              <div className="h-px bg-sky-100 flex-1" />
-            </div>
-
-            {/* 左右2列（左：STRIKER、右：SPECIAL）- 列数比率で綺麗に分割 */}
-            <div className="flex items-start gap-1.5 sm:gap-3">
-              {/* 左：STRIKER */}
-              <div
-                style={{ flex: strikerCols }}
-                className="min-w-0 pr-1.5 sm:pr-2 border-r border-sky-100"
-              >
-                {strikers.length > 0 ? (
-                  <div
-                    className="grid gap-1 sm:gap-1.5 content-start"
-                    style={{
-                      gridTemplateColumns: `repeat(${strikerCols}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {strikers.map((char) => (
-                      <CharacterIcon
-                        key={char.id}
-                        character={char}
-                        size={undefined}
-                        borderRadius={styleConfig.borderRadius}
-                        borderWidth={styleConfig.borderWidth}
-                        borderColorMode={styleConfig.borderColorMode}
-                        showCharacterName={false}
-                        isUnowned={unownedIds.has(char.id)}
-                        showUnownedOverlay={true}
-                        onClick={onToggleUnowned}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="h-8 flex items-center justify-center text-slate-300 text-[10px]">
-                    なし
-                  </div>
-                )}
+        <div className="bg-white rounded-xl border border-sky-200 p-3 sm:p-4 shadow-sm font-rounded divide-y divide-sky-100 box-border">
+          {yearGroups.map(({ year, strikers, specials }) => (
+            <div key={year} className="py-2.5 first:pt-0 last:pb-0">
+              {/* 年ラベル */}
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[11px] font-black text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
+                  {year > 0 ? `${year}年` : 'その他'}
+                </span>
+                <div className="h-px bg-sky-100 flex-1" />
               </div>
 
-              {/* 右：SPECIAL */}
-              <div
-                style={{ flex: specialCols }}
-                className="min-w-0 pl-0.5 sm:pl-1"
-              >
-                {specials.length > 0 ? (
-                  <div
-                    className="grid gap-1 sm:gap-1.5 content-start"
-                    style={{
-                      gridTemplateColumns: `repeat(${specialCols}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {specials.map((char) => (
-                      <CharacterIcon
-                        key={char.id}
-                        character={char}
-                        size={undefined}
-                        borderRadius={styleConfig.borderRadius}
-                        borderWidth={styleConfig.borderWidth}
-                        borderColorMode={styleConfig.borderColorMode}
-                        showCharacterName={false}
-                        isUnowned={unownedIds.has(char.id)}
-                        showUnownedOverlay={true}
-                        onClick={onToggleUnowned}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="h-8 flex items-center justify-center text-slate-300 text-[10px]">
-                    なし
-                  </div>
-                )}
+              {/* 左右2列（左：STRIKER、右：SPECIAL）- 列数比率で綺麗に分割 */}
+              <div className="flex items-start gap-1.5 sm:gap-3">
+                {/* 左：STRIKER */}
+                <div
+                  style={{ flex: strikerCols }}
+                  className="min-w-0 pr-1.5 sm:pr-2 border-r border-sky-100"
+                >
+                  {strikers.length > 0 ? (
+                    <div
+                      className="grid gap-1 sm:gap-1.5 content-start"
+                      style={{
+                        gridTemplateColumns: `repeat(${strikerCols}, minmax(0, 1fr))`,
+                      }}
+                    >
+                      {strikers.map((char) => (
+                        <CharacterIcon
+                          key={char.id}
+                          character={char}
+                          size={undefined}
+                          borderRadius={styleConfig.borderRadius}
+                          borderWidth={styleConfig.borderWidth}
+                          borderColorMode={styleConfig.borderColorMode}
+                          isUnowned={unownedIds.has(char.id)}
+                          showUnownedOverlay={true}
+                          onClick={onToggleUnowned}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-8 flex items-center justify-center text-slate-300 text-[10px]">
+                      なし
+                    </div>
+                  )}
+                </div>
+
+                {/* 右：SPECIAL */}
+                <div
+                  style={{ flex: specialCols }}
+                  className="min-w-0 pl-0.5 sm:pl-1"
+                >
+                  {specials.length > 0 ? (
+                    <div
+                      className="grid gap-1 sm:gap-1.5 content-start"
+                      style={{
+                        gridTemplateColumns: `repeat(${specialCols}, minmax(0, 1fr))`,
+                      }}
+                    >
+                      {specials.map((char) => (
+                        <CharacterIcon
+                          key={char.id}
+                          character={char}
+                          size={undefined}
+                          borderRadius={styleConfig.borderRadius}
+                          borderWidth={styleConfig.borderWidth}
+                          borderColorMode={styleConfig.borderColorMode}
+                          isUnowned={unownedIds.has(char.id)}
+                          showUnownedOverlay={true}
+                          onClick={onToggleUnowned}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-8 flex items-center justify-center text-slate-300 text-[10px]">
+                      なし
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* 
@@ -189,7 +207,7 @@ export const CharacterSelectorList: React.FC<CharacterSelectorListProps> = ({
         <div className="flex items-center justify-center gap-2 pt-1 pb-4">
           {/* PC版のみ⚙設定ボタンを表示 */}
           {onChangeStyle && (
-            <div className="relative hidden sm:block">
+            <div ref={settingsRef} className="relative hidden sm:block">
               <button
                 type="button"
                 onClick={() => setIsSettingsOpen(!isSettingsOpen)}

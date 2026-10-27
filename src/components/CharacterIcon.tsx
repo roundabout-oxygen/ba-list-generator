@@ -8,7 +8,6 @@ interface CharacterIconProps {
   borderRadius?: number;
   borderWidth?: number;
   borderColorMode?: BorderColorMode;
-  showCharacterName?: boolean;
   isUnowned?: boolean; // 下部リストでの「未」グレー表示用
   showUnownedOverlay?: boolean; // true のとき isUnowned ならグレー＋「未」を表示
   onClick?: (char: Character, e: React.MouseEvent) => void;
@@ -21,7 +20,6 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
   borderRadius = 8,
   borderWidth = 2,
   borderColorMode = 'none',
-  showCharacterName = false,
   isUnowned = false,
   showUnownedOverlay = false,
   onClick,
@@ -78,7 +76,6 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
           className={`w-full h-full object-cover pointer-events-none block transition-all duration-150 ${
             isGrayed ? 'grayscale brightness-[0.45] contrast-125' : ''
           }`}
-          loading="lazy"
           draggable={false}
         />
 
@@ -100,18 +97,6 @@ export const CharacterIcon: React.FC<CharacterIconProps> = ({
           </div>
         )}
       </div>
-
-      {/* オプション：生徒名ラベル表示 */}
-      {showCharacterName && (
-        <span
-          className={`mt-1 w-full text-center truncate font-bold leading-tight ${
-            isGrayed ? 'text-slate-400' : 'text-slate-700'
-          }`}
-          style={{ fontSize: `${Math.max(9, Math.round((size || 60) * 0.16))}px` }}
-        >
-          {character.name}
-        </span>
-      )}
     </div>
   );
 };

@@ -139,10 +139,11 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   };
 
   return (
-    <div
-      ref={panelRef}
-      className="sticky top-1 sm:top-2 z-40 bg-white/95 backdrop-blur-sm rounded-2xl border-2 border-sky-200 shadow-md"
-    >
+    <>
+      <div
+        ref={panelRef}
+        className="sticky top-1 sm:top-2 z-40 bg-white/95 backdrop-blur-sm rounded-2xl border-2 border-sky-200 shadow-md"
+      >
       {/* 
         初期表示バー（スクロール時も常に上部に表示）
         - PC時: タイトル入力、開閉ボタン、一括操作、コピー、保存を表示
@@ -502,7 +503,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   }
                   className="border border-sky-200 rounded px-2 py-0.5 font-bold text-slate-700 text-xs bg-white focus:outline-none focus:border-sky-400"
                 >
-                  <option value="all">すべての学校 ({totalFilteredCount}人)</option>
+                  <option value="all">すべての学校</option>
                   {schools.map((sc) => (
                     <option key={sc} value={sc}>
                       {sc}
@@ -613,11 +614,25 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* 展開パネル右下の小さく閉じるボタン */}
+            <div className="md:col-span-2 flex justify-end pt-0.5">
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border border-sky-200 bg-white hover:bg-sky-100 text-slate-600 font-bold text-[11px] transition shadow-sm active:scale-95"
+                title="設定パネルを閉じる"
+              >
+                <ChevronUp className="w-3 h-3 text-sky-600" />
+                <span>閉じる</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
+      </div>
 
-      {/* プリセット管理モーダル */}
+      {/* プリセット管理モーダル（backdrop-filter要素の外側に配置し、fixed位置ずれを防止） */}
       <PresetModal
         isOpen={isPresetModalOpen}
         onClose={() => setIsPresetModalOpen(false)}
@@ -633,6 +648,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         onLoadPreset={onLoadPreset}
         onDeletePreset={onDeletePreset}
       />
-    </div>
+    </>
   );
 };

@@ -40,15 +40,9 @@ const DEFAULT_PRESETS: PresetConfig[] = [
 
 const DEFAULT_STYLE: CanvasStyleConfig = {
   title: '未所持確定チケット候補生徒',
-  subtitle: '',
-  showCount: true,
-  showDateCondition: true,
-  iconSize: 52,
   borderRadius: 6,
   borderWidth: 2,
   borderColorMode: 'none',
-  showCharacterName: false,
-  columnsPerRole: 0,
   strikerColumns: 4,
   specialColumns: 2,
   listStrikerColumns: 8,
@@ -263,11 +257,19 @@ export const App: React.FC = () => {
   };
 
   const handleClearAllUnowned = () => {
-    setUnownedNames(new Set());
+    setUnownedNames((prev) => {
+      const next = new Set(prev);
+      filteredCharacters.forEach((c) => next.delete(c.name));
+      return next;
+    });
   };
 
   const handleResetDefaultFilter = () => {
     setFilterConfig(DEFAULT_FILTER);
+    setStyleConfig((prev) => ({
+      ...prev,
+      title: DEFAULT_STYLE.title,
+    }));
   };
 
   const handleSaveCurrentAsPreset = (name: string) => {
@@ -285,13 +287,16 @@ export const App: React.FC = () => {
   };
 
   const handleLoadPreset = (preset: PresetConfig) => {
-    setFilterConfig((prev) => ({
-      ...prev,
+    setFilterConfig({
       minDate: preset.minDate || '',
       maxDate: preset.maxDate || '',
       rarities: [...preset.rarities],
       recruitmentTypes: [...preset.recruitmentTypes],
-    }));
+      searchQuery: '',
+      school: 'all',
+      attackType: 'all',
+      defenseType: 'all',
+    });
     setStyleConfig((prev) => ({
       ...prev,
       title: preset.title || '',
@@ -302,12 +307,24 @@ export const App: React.FC = () => {
     setPresets((prev) => prev.filter((p) => p.id !== id));
   };
 
+  // プレビューのレイアウトを一切変更せず、出力ピクセル幅をPC版基準（pcBaseWidth * 2）に揃える倍率計算
+  const getCanvasExportPixelRatio = () => {
+    const el = canvasRef.current;
+    if (!el) return 2;
+    const strikerCols = styleConfig.strikerColumns || 4;
+    const specialCols = styleConfig.specialColumns || 2;
+    const totalCols = strikerCols + specialCols;
+    const pcBaseWidth = totalCols * 76 + Math.max(0, totalCols - 2) * 8 + 60;
+    const currentWidth = el.offsetWidth || pcBaseWidth;
+    return Math.max(2, (pcBaseWidth * 2) / currentWidth);
+  };
+
   const handleExportPng = async () => {
     if (!canvasRef.current) return;
     try {
       await document.fonts.ready;
       const dataUrl = await toPng(canvasRef.current, {
-        pixelRatio: 2,
+        pixelRatio: getCanvasExportPixelRatio(),
         cacheBust: false,
         skipAutoScale: true,
       });
@@ -326,8 +343,10 @@ export const App: React.FC = () => {
     setIsExportingList(true);
     try {
       await document.fonts.ready;
+      const currentWidth = listRef.current.offsetWidth || 548;
+      const listPixelRatio = Math.max(2, (548 * 2) / currentWidth);
       const dataUrl = await toPng(listRef.current, {
-        pixelRatio: 2,
+        pixelRatio: listPixelRatio,
         cacheBust: false,
         skipAutoScale: true,
       });
@@ -348,7 +367,7 @@ export const App: React.FC = () => {
     try {
       await document.fonts.ready;
       const blob = await toBlob(canvasRef.current, {
-        pixelRatio: 2,
+        pixelRatio: getCanvasExportPixelRatio(),
         cacheBust: false,
         skipAutoScale: true,
       });

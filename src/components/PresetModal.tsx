@@ -49,8 +49,14 @@ export const PresetModal: React.FC<PresetModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl border-2 border-sky-200 shadow-xl max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh] font-rounded text-slate-800">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-150"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl border-2 border-sky-200 shadow-xl max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh] font-rounded text-slate-800"
+      >
         {/* モーダルヘッダー */}
         <div className="px-4 py-3 bg-gradient-to-r from-sky-50 via-white to-sky-50 border-b border-sky-100 flex items-center justify-between">
           <div className="flex items-center gap-2">

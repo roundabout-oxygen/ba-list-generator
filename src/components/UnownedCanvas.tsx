@@ -75,7 +75,6 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
                         borderRadius={styleConfig.borderRadius}
                         borderWidth={styleConfig.borderWidth}
                         borderColorMode={styleConfig.borderColorMode}
-                        showCharacterName={false}
                         isUnowned={true}
                         showUnownedOverlay={false}
                         onClick={() => onRemoveUnowned(char)}
@@ -113,7 +112,6 @@ export const UnownedCanvas: React.FC<UnownedCanvasProps> = ({
                         borderRadius={styleConfig.borderRadius}
                         borderWidth={styleConfig.borderWidth}
                         borderColorMode={styleConfig.borderColorMode}
-                        showCharacterName={false}
                         isUnowned={true}
                         showUnownedOverlay={false}
                         onClick={() => onRemoveUnowned(char)}
