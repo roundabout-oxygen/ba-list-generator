@@ -38,6 +38,7 @@ export interface Character {
 }
 
 export interface FilterConfig {
+  minDate: string; // "YYYY-MM-DD", optional default ""
   maxDate: string; // "YYYY-MM-DD", default "2026-04-20"
   rarities: string[]; // default ["★3"]
   recruitmentTypes: RecruitmentType[]; // default ["normal"]
@@ -45,6 +46,17 @@ export interface FilterConfig {
   school: string; // "all" or school name
   attackType: string; // "all" or attack type
   defenseType: string; // "all" or defense type
+}
+
+export interface PresetConfig {
+  id: string;
+  name: string;
+  title: string;
+  minDate: string;
+  maxDate: string;
+  rarities: string[];
+  recruitmentTypes: RecruitmentType[];
+  createdAt: number;
 }
 
 export interface CanvasStyleConfig {

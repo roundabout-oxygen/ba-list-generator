@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { toPng, toBlob } from 'html-to-image';
-import { Character, FilterConfig, CanvasStyleConfig } from './types';
+import { Character, FilterConfig, CanvasStyleConfig, PresetConfig } from './types';
 import {
   DEFAULT_MAX_DATE,
   matchFuzzyJapanese,
@@ -12,8 +12,10 @@ import { CharacterSelectorList } from './components/CharacterSelectorList';
 const STORAGE_KEY_UNOWNED = 'ba_unowned_checker_unowned_names_v2';
 const STORAGE_KEY_STYLE = 'ba_unowned_checker_style_v2';
 const STORAGE_KEY_FILTER = 'ba_unowned_checker_filter_v2';
+const STORAGE_KEY_PRESETS = 'ba_list_generator_presets_v1';
 
 const DEFAULT_FILTER: FilterConfig = {
+  minDate: '',
   maxDate: DEFAULT_MAX_DATE, // "2026-04-20"
   rarities: ['★3'],
   recruitmentTypes: ['normal'], // アーカイブ募集・限定募集を除く通常募集（恒常）
@@ -22,6 +24,19 @@ const DEFAULT_FILTER: FilterConfig = {
   attackType: 'all',
   defenseType: 'all',
 };
+
+const DEFAULT_PRESETS: PresetConfig[] = [
+  {
+    id: 'preset_unowned_guaranteed',
+    name: '未所持確定チケ',
+    title: '未所持確定チケット候補生徒',
+    minDate: '',
+    maxDate: DEFAULT_MAX_DATE,
+    rarities: ['★3'],
+    recruitmentTypes: ['normal'],
+    createdAt: 1700000000000,
+  },
+];
 
 const DEFAULT_STYLE: CanvasStyleConfig = {
   title: '未所持確定チケット候補生徒',
@@ -79,6 +94,19 @@ export const App: React.FC = () => {
     return DEFAULT_STYLE;
   });
 
+  const [presets, setPresets] = useState<PresetConfig[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PRESETS);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to load presets:', e);
+    }
+    return DEFAULT_PRESETS;
+  });
+
   const canvasRef = useRef<HTMLDivElement | null>(null);
 
   // キャラクターデータの読み込み
@@ -129,6 +157,14 @@ export const App: React.FC = () => {
     }
   }, [styleConfig]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(presets));
+    } catch (e) {
+      console.warn('Failed to save presets:', e);
+    }
+  }, [presets]);
+
   // 全学校リスト
   const schools = useMemo(() => {
     const s = new Set<string>();
@@ -140,11 +176,15 @@ export const App: React.FC = () => {
 
   // 条件でフィルタリングされた生徒一覧（古い順）
   const filteredCharacters = useMemo(() => {
+    const minDateSlash = filterConfig.minDate
+      ? filterConfig.minDate.replace(/-/g, '/')
+      : '';
     const maxDateSlash = filterConfig.maxDate
       ? filterConfig.maxDate.replace(/-/g, '/')
       : '9999/99/99';
 
     return characters.filter((c) => {
+      if (c.release_date && minDateSlash && c.release_date < minDateSlash) return false;
       if (c.release_date && c.release_date > maxDateSlash) return false;
       if (
         filterConfig.rarities.length > 0 &&
@@ -225,6 +265,38 @@ export const App: React.FC = () => {
     setFilterConfig(DEFAULT_FILTER);
   };
 
+  const handleSaveCurrentAsPreset = (name: string) => {
+    const newPreset: PresetConfig = {
+      id: `preset_${Date.now()}`,
+      name,
+      title: styleConfig.title,
+      minDate: filterConfig.minDate || '',
+      maxDate: filterConfig.maxDate || '',
+      rarities: [...filterConfig.rarities],
+      recruitmentTypes: [...filterConfig.recruitmentTypes],
+      createdAt: Date.now(),
+    };
+    setPresets((prev) => [newPreset, ...prev]);
+  };
+
+  const handleLoadPreset = (preset: PresetConfig) => {
+    setFilterConfig((prev) => ({
+      ...prev,
+      minDate: preset.minDate || '',
+      maxDate: preset.maxDate || '',
+      rarities: [...preset.rarities],
+      recruitmentTypes: [...preset.recruitmentTypes],
+    }));
+    setStyleConfig((prev) => ({
+      ...prev,
+      title: preset.title || '',
+    }));
+  };
+
+  const handleDeletePreset = (id: string) => {
+    setPresets((prev) => prev.filter((p) => p.id !== id));
+  };
+
   const handleExportPng = async () => {
     if (!canvasRef.current) return;
     try {
@@ -285,6 +357,10 @@ export const App: React.FC = () => {
           onResetDefaultFilter={handleResetDefaultFilter}
           onExportPng={handleExportPng}
           onCopyClipboard={handleCopyClipboard}
+          presets={presets}
+          onSaveCurrentAsPreset={handleSaveCurrentAsPreset}
+          onLoadPreset={handleLoadPreset}
+          onDeletePreset={handleDeletePreset}
         />
 
         {/* 画面上部：出力用キャンバス（色分けやSTRIKER/SPECIALタイトルなし、左右に分かれただけのシンプル設計） */}

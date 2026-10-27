@@ -4,6 +4,7 @@ import {
   CanvasStyleConfig,
   RecruitmentType,
   BorderColorMode,
+  PresetConfig,
 } from '../types';
 import {
   RECRUITMENT_OPTIONS,
@@ -11,6 +12,7 @@ import {
   ATTACK_COLORS,
   DEFENSE_COLORS,
 } from '../utils/constants';
+import { PresetModal } from './PresetModal';
 import {
   Download,
   Copy,
@@ -23,6 +25,7 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
+  Bookmark,
 } from 'lucide-react';
 
 interface ControlPanelProps {
@@ -38,6 +41,10 @@ interface ControlPanelProps {
   onResetDefaultFilter: () => void;
   onExportPng: () => Promise<void>;
   onCopyClipboard: () => Promise<boolean>;
+  presets: PresetConfig[];
+  onSaveCurrentAsPreset: (name: string) => void;
+  onLoadPreset: (preset: PresetConfig) => void;
+  onDeletePreset: (id: string) => void;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -53,11 +60,16 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onResetDefaultFilter,
   onExportPng,
   onCopyClipboard,
+  presets,
+  onSaveCurrentAsPreset,
+  onLoadPreset,
+  onDeletePreset,
 }) => {
   const [copied, setCopied] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [isOpen, setIsOpen] = useState(false); // 初期は折りたたみ（設定ボタンと保存ボタンだけ表示）
+  const [isPresetModalOpen, setIsPresetModalOpen] = useState(false);
 
   const handleCopy = async () => {
     if (isCopying) return;
@@ -263,13 +275,22 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
           </div>
 
-          {/* 基本フィルター（実装日・レアリティ・募集区分・検索・リセット） */}
+          {/* 基本フィルター（実装日・レアリティ・募集区分・検索・リセット・プリセット） */}
           <div className="p-3 flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex flex-wrap items-center gap-2">
-              {/* 実装日上限 */}
-              <div className="flex items-center gap-1 bg-sky-50/70 px-2 py-1 rounded-xl border border-sky-100">
+              {/* 実装日範囲（〜から 〜まで） */}
+              <div className="flex flex-wrap items-center gap-1 bg-sky-50/70 px-2 py-1 rounded-xl border border-sky-100">
                 <Filter className="w-3 h-3 text-sky-600" />
                 <span className="font-bold text-slate-600 text-[11px]">実装日:</span>
+                <input
+                  type="date"
+                  value={filterConfig.minDate || ''}
+                  onChange={(e) =>
+                    onChangeFilter({ ...filterConfig, minDate: e.target.value })
+                  }
+                  className="bg-white border border-sky-200 rounded px-1.5 py-0.5 font-bold text-slate-700 text-xs focus:outline-none focus:border-sky-400"
+                />
+                <span className="font-bold text-slate-500 text-[11px]">から</span>
                 <input
                   type="date"
                   value={filterConfig.maxDate}
@@ -327,8 +348,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               </div>
             </div>
 
-            {/* 検索 ＆ リセット */}
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            {/* 検索 ＆ リセット ＆ プリセット */}
+            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
               <div className="relative flex-1 sm:flex-initial">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
@@ -338,26 +359,39 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     onChangeFilter({ ...filterConfig, searchQuery: e.target.value })
                   }
                   placeholder="生徒名で検索..."
-                  className="w-full sm:w-44 pl-7 pr-2.5 py-1 rounded-xl border border-sky-200 bg-sky-50/40 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-sky-400"
+                  className="w-full sm:w-36 pl-7 pr-2.5 py-1 rounded-xl border border-sky-200 bg-sky-50/40 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-sky-400"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={onResetDefaultFilter}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-slate-600 font-bold transition text-xs shrink-0"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-slate-600 font-bold transition text-xs shrink-0 active:scale-95"
                 title={`初期条件（${DEFAULT_MAX_DATE}までの恒常★3生徒）に戻す`}
               >
                 <RotateCcw className="w-3.5 h-3.5 text-sky-600" />
                 <span>リセット</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsPresetModalOpen(true)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 text-sky-800 font-extrabold transition text-xs shrink-0 active:scale-95 shadow-sm"
+                title="プリセットの保存・読み込み"
+              >
+                <Bookmark className="w-3.5 h-3.5 text-sky-600" />
+                <span>プリセット</span>
               </button>
             </div>
           </div>
 
           {/* 詳細設定（アイコン枠線・サイズ・属性・学校） */}
           <div className="p-3 bg-sky-50/50 grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* 左：アイコン枠線・サイズ設定 */}
-            <div className="bg-white p-2.5 rounded-xl border border-sky-100 space-y-2">
+            {/* 左：表示設定（外枠色を変えて枠内に◇表示設定と書いて他と差別化） */}
+            <div className="bg-sky-50/70 p-2.5 rounded-xl border-2 border-sky-400 shadow-sm space-y-2">
+              <div className="flex items-center gap-1.5 pb-1 border-b border-sky-200 text-sky-800 font-extrabold text-xs">
+                <span>◇ 表示設定</span>
+              </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="text-slate-600 font-bold text-[11px] w-20 shrink-0">枠色:</span>
                 {(
@@ -544,6 +578,23 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           </div>
         </div>
       )}
+
+      {/* プリセット管理モーダル */}
+      <PresetModal
+        isOpen={isPresetModalOpen}
+        onClose={() => setIsPresetModalOpen(false)}
+        presets={presets}
+        currentPresetValues={{
+          title: styleConfig.title,
+          minDate: filterConfig.minDate || '',
+          maxDate: filterConfig.maxDate || '',
+          rarities: filterConfig.rarities,
+          recruitmentTypes: filterConfig.recruitmentTypes,
+        }}
+        onSaveCurrentAsPreset={onSaveCurrentAsPreset}
+        onLoadPreset={onLoadPreset}
+        onDeletePreset={onDeletePreset}
+      />
     </div>
   );
 };
