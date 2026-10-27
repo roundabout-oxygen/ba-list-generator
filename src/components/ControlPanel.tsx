@@ -71,7 +71,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const [isCopying, setIsCopying] = useState(false);
   const [isOpen, setIsOpen] = useState(false); // 初期は折りたたみ（設定ボタンと保存ボタンだけ表示）
   const [isPresetModalOpen, setIsPresetModalOpen] = useState(false);
-  const panelRef = useRef<HTMLDivElement | null>(null);
+  const topBarRef = useRef<HTMLDivElement | null>(null);
+  const expandedPanelRef = useRef<HTMLDivElement | null>(null);
 
   // パネルが開いている時に外側をクリック・タップしたら自動で閉じる
   useEffect(() => {
@@ -81,7 +82,11 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       // プリセット管理モーダルが開いている最中は閉じない
       if (isPresetModalOpen) return;
 
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const inTopBar = topBarRef.current?.contains(target);
+      const inExpanded = expandedPanelRef.current?.contains(target);
+
+      if (!inTopBar && !inExpanded) {
         setIsOpen(false);
       }
     };
@@ -93,6 +98,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isOpen, isPresetModalOpen]);
+
+  const handleToggleOpen = () => {
+    if (!isOpen && typeof window !== 'undefined' && window.scrollY > 20) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    setIsOpen(!isOpen);
+  };
 
   const handleCopy = async () => {
     if (isCopying) return;
@@ -140,110 +152,112 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   return (
     <>
-      <div
-        ref={panelRef}
-        className="sticky top-1 sm:top-2 z-40 bg-white/95 backdrop-blur-sm rounded-2xl border-2 border-sky-200 shadow-md"
-      >
       {/* 
-        初期表示バー（スクロール時も常に上部に表示）
-        - PC時: タイトル入力、開閉ボタン、一括操作、コピー、保存を表示
-        - スマホ時: リストタイトルなどは折りたたみ、初期状態では「設定ボタン」と「画像保存ボタン（+コピー）」のみがスッキリ表示されるレスポンシブ設計
+        一番上の操作バー（スクロールしても常に画面上部に固定表示）
       */}
-      <div className="p-2 sm:p-3 bg-gradient-to-r from-sky-50/90 via-white to-sky-50/90 flex items-center justify-between gap-2 rounded-t-2xl">
-        {/* 左側：設定ボタン ＆ PC用タイトル入力（スマホ時はタイトル入力を非表示にして折りたたみ内へ） */}
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <button
-            type="button"
-            onClick={() => setIsOpen(!isOpen)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition shadow-sm shrink-0 active:scale-95 ${
-              isOpen
-                ? 'bg-sky-500 text-white border-sky-500'
-                : 'bg-white text-sky-700 border-sky-300 hover:bg-sky-50'
-            }`}
-            title="設定・条件フィルターを開閉"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            <span>設定</span>
-            {isOpen ? (
-              <ChevronUp className="w-3.5 h-3.5" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5" />
-            )}
-          </button>
+      <div
+        ref={topBarRef}
+        className="sticky top-1 sm:top-2 z-40 bg-white/95 backdrop-blur-sm rounded-2xl border-2 border-sky-200 shadow-md overflow-hidden"
+      >
+        <div className="p-2 sm:p-3 bg-gradient-to-r from-sky-50/90 via-white to-sky-50/90 flex items-center justify-between gap-2">
+          {/* 左側：設定ボタン ＆ PC用タイトル入力（スマホ時はタイトル入力を非表示にして折りたたみ内へ） */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <button
+              type="button"
+              onClick={handleToggleOpen}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition shadow-sm shrink-0 active:scale-95 ${
+                isOpen
+                  ? 'bg-sky-500 text-white border-sky-500'
+                  : 'bg-white text-sky-700 border-sky-300 hover:bg-sky-50'
+              }`}
+              title="設定・条件フィルターを開閉"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span>設定</span>
+              {isOpen ? (
+                <ChevronUp className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5" />
+              )}
+            </button>
 
-          {/* PC版のみ一行目にタイトル入力欄を表示 */}
-          <div className="hidden sm:flex items-center gap-2 flex-1 min-w-0">
-            <span className="text-xs font-extrabold text-sky-800 shrink-0">
-              タイトル:
+            {/* PC版のみ一行目にタイトル入力欄を表示 */}
+            <div className="hidden sm:flex items-center gap-2 flex-1 min-w-0">
+              <span className="text-xs font-extrabold text-sky-800 shrink-0">
+                タイトル:
+              </span>
+              <input
+                type="text"
+                value={styleConfig.title}
+                onChange={(e) => onChangeStyle({ ...styleConfig, title: e.target.value })}
+                placeholder="未所持確定チケット候補生徒"
+                className="flex-1 max-w-sm px-3 py-1 rounded-xl border border-sky-200 bg-white text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              />
+            </div>
+
+            {/* スマホ時：現在のタイトル（省略表示） */}
+            <span className="sm:hidden text-xs font-extrabold text-slate-700 truncate">
+              {styleConfig.title}
             </span>
-            <input
-              type="text"
-              value={styleConfig.title}
-              onChange={(e) => onChangeStyle({ ...styleConfig, title: e.target.value })}
-              placeholder="未所持確定チケット候補生徒"
-              className="flex-1 max-w-sm px-3 py-1 rounded-xl border border-sky-200 bg-white text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400"
-            />
           </div>
 
-          {/* スマホ時：現在のタイトル（省略表示） */}
-          <span className="sm:hidden text-xs font-extrabold text-slate-700 truncate">
-            {styleConfig.title}
-          </span>
-        </div>
+          {/* 右側：画像保存ボタン群（スマホでも初期表示） */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* 画像コピー（PC表示のみ初期表示、スマホ時は設定を開いた中へ） */}
+            <button
+              type="button"
+              onClick={handleCopy}
+              disabled={isCopying}
+              className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 disabled:opacity-60 text-sky-800 text-xs font-extrabold transition shadow-sm active:scale-95"
+              title="画像をクリップボードにコピー"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="text-emerald-700">完了!</span>
+                </>
+              ) : isCopying ? (
+                <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-sky-600" />
+                  <span>画像コピー</span>
+                </>
+              )}
+            </button>
 
-        {/* 右側：画像保存ボタン群（スマホでも初期表示） */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* 画像コピー（PC表示のみ初期表示、スマホ時は設定を開いた中へ） */}
-          <button
-            type="button"
-            onClick={handleCopy}
-            disabled={isCopying}
-            className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 disabled:opacity-60 text-sky-800 text-xs font-extrabold transition shadow-sm active:scale-95"
-            title="画像をクリップボードにコピー"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-emerald-700">完了!</span>
-              </>
-            ) : isCopying ? (
-              <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-sky-600" />
-                <span>画像コピー</span>
-              </>
-            )}
-          </button>
-
-          {/* 画像保存（主役ボタン） */}
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={isExporting}
-            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 disabled:opacity-60 text-white text-xs font-extrabold transition shadow-sm shadow-sky-200 active:scale-95"
-          >
-            {isExporting ? (
-              <>
-                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>保存中</span>
-              </>
-            ) : (
-              <>
-                <Download className="w-3.5 h-3.5" />
-                <span>画像保存</span>
-              </>
-            )}
-          </button>
+            {/* 画像保存（主役ボタン） */}
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={isExporting}
+              className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 disabled:opacity-60 text-white text-xs font-extrabold transition shadow-sm shadow-sky-200 active:scale-95"
+            >
+              {isExporting ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>保存中</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>画像保存</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* 
         展開エリア（設定ボタンを押した時に表示）
-        - スマホ用のタイトル変更欄、一括選択ボタン、条件フィルター等をすべて内包
+        - 通常フロー配置（sticky対象外・内部スクロールバーなし）のため、パネル上でスクロール・スワイプしてもページ全体が自然にスクロールし、一番上のバーのみ追従します
       */}
       {isOpen && (
-        <div className="border-t border-sky-100 bg-white divide-y divide-sky-100 text-xs max-h-[80vh] overflow-y-auto rounded-b-2xl">
+        <div
+          ref={expandedPanelRef}
+          className="!mt-1.5 bg-white rounded-2xl border-2 border-sky-200 shadow-sm divide-y divide-sky-100 text-xs overflow-hidden"
+        >
           {/* スマホ時のみ表示するタイトル編集・一括操作バー */}
           <div className="p-3 bg-sky-50/40 flex flex-wrap items-center justify-between gap-2.5">
             <div className="w-full sm:hidden flex items-center gap-2">
@@ -630,7 +644,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           </div>
         </div>
       )}
-      </div>
 
       {/* プリセット管理モーダル（backdrop-filter要素の外側に配置し、fixed位置ずれを防止） */}
       <PresetModal
