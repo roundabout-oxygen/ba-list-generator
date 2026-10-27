@@ -1,0 +1,37 @@
+{
+  "name": "ba-list-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Blue Archive Unowned Student List & Image Generator",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "sync": "python scripts/sync_characters.py"
+  },
+  "keywords": [
+    "bluearchive",
+    "checklist",
+    "canvas",
+    "unowned"
+  ],
+  "author": "roundabout-oxygen",
+  "license": "MIT",
+  "dependencies": {
+    "html-to-image": "^1.11.11",
+    "lucide-react": "^1.16.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.0"
+  }
+}

@@ -1,0 +1,466 @@
+import React, { useState } from 'react';
+import {
+  FilterConfig,
+  CanvasStyleConfig,
+  RecruitmentType,
+  BorderColorMode,
+} from '../types';
+import {
+  RECRUITMENT_OPTIONS,
+  DEFAULT_MAX_DATE,
+  ATTACK_COLORS,
+  DEFENSE_COLORS,
+} from '../utils/constants';
+import {
+  Download,
+  Copy,
+  Check,
+  RotateCcw,
+  CheckSquare,
+  Square,
+  SlidersHorizontal,
+  Filter,
+  Search,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
+
+interface ControlPanelProps {
+  filterConfig: FilterConfig;
+  onChangeFilter: (next: FilterConfig) => void;
+  styleConfig: CanvasStyleConfig;
+  onChangeStyle: (next: CanvasStyleConfig) => void;
+  schools: string[];
+  totalFilteredCount: number;
+  unownedCount: number;
+  onSelectAllUnowned: () => void;
+  onClearAllUnowned: () => void;
+  onResetDefaultFilter: () => void;
+  onExportPng: () => void;
+  onCopyClipboard: () => Promise<boolean>;
+}
+
+export const ControlPanel: React.FC<ControlPanelProps> = ({
+  filterConfig,
+  onChangeFilter,
+  styleConfig,
+  onChangeStyle,
+  schools,
+  totalFilteredCount,
+  unownedCount,
+  onSelectAllUnowned,
+  onClearAllUnowned,
+  onResetDefaultFilter,
+  onExportPng,
+  onCopyClipboard,
+}) => {
+  const [copied, setCopied] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // 2行目以下を折りたたみ
+
+  const handleCopy = async () => {
+    const ok = await onCopyClipboard();
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const toggleRarity = (rarity: string) => {
+    const exists = filterConfig.rarities.includes(rarity);
+    const next = exists
+      ? filterConfig.rarities.filter((r) => r !== rarity)
+      : [...filterConfig.rarities, rarity];
+    if (next.length > 0) {
+      onChangeFilter({ ...filterConfig, rarities: next });
+    }
+  };
+
+  const toggleRecruitment = (type: RecruitmentType) => {
+    const exists = filterConfig.recruitmentTypes.includes(type);
+    const next = exists
+      ? filterConfig.recruitmentTypes.filter((t) => t !== type)
+      : [...filterConfig.recruitmentTypes, type];
+    if (next.length > 0) {
+      onChangeFilter({ ...filterConfig, recruitmentTypes: next });
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border-2 border-sky-200 shadow-sm overflow-hidden">
+      {/* 1行目：リストタイトル、開閉ボタン、全操作、画像コピー、画像保存 */}
+      <div className="p-3 bg-gradient-to-r from-sky-50/90 via-white to-sky-50/90 flex flex-wrap items-center justify-between gap-3">
+        {/* リストタイトル ＆ 右横の開閉ボタン */}
+        <div className="flex items-center gap-2 flex-1 min-w-[280px]">
+          <span className="text-xs font-extrabold text-sky-800 shrink-0">
+            リストタイトル:
+          </span>
+          <input
+            type="text"
+            value={styleConfig.title}
+            onChange={(e) => onChangeStyle({ ...styleConfig, title: e.target.value })}
+            placeholder="未所持確定チケット候補生徒"
+            className="flex-1 max-w-sm px-3 py-1 rounded-xl border border-sky-200 bg-white text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400"
+          />
+          {/* リストタイトルの右に配置した開閉ボタン */}
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold transition shadow-sm ${
+              isOpen
+                ? 'bg-sky-500 text-white border-sky-500'
+                : 'bg-white text-sky-700 border-sky-200 hover:bg-sky-50'
+            }`}
+            title="条件・設定フィルターの開閉"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">設定・条件</span>
+            {isOpen ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
+            )}
+          </button>
+        </div>
+
+        {/* アクションボタン群 */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button
+            type="button"
+            onClick={onClearAllUnowned}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-sky-800 text-xs font-bold transition shadow-sm active:scale-95"
+            title="すべての生徒を所持済に戻します"
+          >
+            <Square className="w-3.5 h-3.5 text-sky-600" />
+            <span>全て所持済に戻す</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onSelectAllUnowned}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-sky-800 text-xs font-bold transition shadow-sm active:scale-95"
+            title="現在表示中の生徒をすべて未所持にします"
+          >
+            <CheckSquare className="w-3.5 h-3.5 text-sky-600" />
+            <span>全て未所持にする</span>
+          </button>
+
+          <div className="h-5 w-px bg-sky-200 mx-0.5 hidden sm:block" />
+
+          {/* 画像コピー */}
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 text-sky-800 text-xs font-extrabold transition shadow-sm active:scale-95"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-emerald-700">コピー完了!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-sky-600" />
+                <span>画像コピー</span>
+              </>
+            )}
+          </button>
+
+          {/* 画像保存 */}
+          <button
+            type="button"
+            onClick={onExportPng}
+            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 text-white text-xs font-extrabold transition shadow-sm shadow-sky-200 active:scale-95"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>画像保存</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 2行目以降：折りたたみ表示領域 */}
+      {isOpen && (
+        <div className="border-t border-sky-100 bg-white divide-y divide-sky-100 text-xs">
+          {/* 基本フィルター（実装日・レアリティ・募集区分・検索・リセット） */}
+          <div className="p-3 flex flex-wrap items-center justify-between gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* 実装日上限 */}
+              <div className="flex items-center gap-1 bg-sky-50/70 px-2 py-1 rounded-xl border border-sky-100">
+                <Filter className="w-3 h-3 text-sky-600" />
+                <span className="font-bold text-slate-600 text-[11px]">実装日:</span>
+                <input
+                  type="date"
+                  value={filterConfig.maxDate}
+                  onChange={(e) =>
+                    onChangeFilter({ ...filterConfig, maxDate: e.target.value })
+                  }
+                  className="bg-white border border-sky-200 rounded px-1.5 py-0.5 font-bold text-slate-700 text-xs focus:outline-none focus:border-sky-400"
+                />
+                <span className="font-bold text-slate-500 text-[11px]">まで</span>
+              </div>
+
+              {/* レアリティ */}
+              <div className="flex items-center gap-1 bg-sky-50/70 px-2 py-1 rounded-xl border border-sky-100">
+                <span className="font-bold text-slate-600 text-[11px]">レア:</span>
+                {['★3', '★2', '★1'].map((r) => {
+                  const active = filterConfig.rarities.includes(r);
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => toggleRarity(r)}
+                      className={`px-2 py-0.5 rounded-lg font-extrabold transition text-xs ${
+                        active
+                          ? 'bg-sky-500 text-white shadow-sm'
+                          : 'bg-white text-slate-500 border border-sky-100 hover:bg-sky-50'
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 募集区分 */}
+              <div className="flex flex-wrap items-center gap-1 bg-sky-50/70 px-2 py-1 rounded-xl border border-sky-100">
+                <span className="font-bold text-slate-600 text-[11px]">募集区分:</span>
+                {RECRUITMENT_OPTIONS.map((opt) => {
+                  const active = filterConfig.recruitmentTypes.includes(opt.type);
+                  return (
+                    <button
+                      key={opt.type}
+                      type="button"
+                      onClick={() => toggleRecruitment(opt.type)}
+                      title={opt.description}
+                      className={`px-2 py-0.5 rounded-lg font-extrabold transition text-xs ${
+                        active
+                          ? 'bg-sky-500 text-white shadow-sm'
+                          : 'bg-white text-slate-500 border border-sky-100 hover:bg-sky-50'
+                      }`}
+                    >
+                      {opt.shortLabel}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 検索 ＆ リセット */}
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={filterConfig.searchQuery}
+                  onChange={(e) =>
+                    onChangeFilter({ ...filterConfig, searchQuery: e.target.value })
+                  }
+                  placeholder="生徒名で検索..."
+                  className="pl-7 pr-2.5 py-1 rounded-xl border border-sky-200 bg-sky-50/40 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-sky-400 w-36 sm:w-44"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={onResetDefaultFilter}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-xl border border-sky-200 bg-white hover:bg-sky-50 text-slate-600 font-bold transition text-xs"
+                title={`初期条件（${DEFAULT_MAX_DATE}までの恒常★3生徒）に戻す`}
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-sky-600" />
+                <span>条件リセット</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 詳細設定（アイコン枠線・サイズ・属性・学校） */}
+          <div className="p-3 bg-sky-50/50 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* 左：アイコン枠線・サイズ設定 */}
+            <div className="bg-white p-2.5 rounded-xl border border-sky-100 space-y-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-slate-600 font-bold text-[11px] w-20 shrink-0">枠色:</span>
+                {(
+                  [
+                    { mode: 'none', label: '標準' },
+                    { mode: 'attack', label: '攻撃属性' },
+                    { mode: 'defense', label: '防御属性' },
+                    { mode: 'role', label: '部隊(赤/青)' },
+                  ] as { mode: BorderColorMode; label: string }[]
+                ).map(({ mode, label }) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() =>
+                      onChangeStyle({
+                        ...styleConfig,
+                        borderColorMode: mode,
+                        borderWidth: mode === 'none' ? 1 : Math.max(2, styleConfig.borderWidth),
+                      })
+                    }
+                    className={`px-2 py-0.5 rounded-lg font-bold transition text-xs ${
+                      styleConfig.borderColorMode === mode
+                        ? 'bg-sky-500 text-white shadow-sm'
+                        : 'bg-sky-50 text-slate-600 hover:bg-sky-100'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-600 font-bold text-[11px]">サイズ:</span>
+                  <input
+                    type="range"
+                    min={44}
+                    max={76}
+                    step={2}
+                    value={styleConfig.iconSize}
+                    onChange={(e) =>
+                      onChangeStyle({ ...styleConfig, iconSize: Number(e.target.value) })
+                    }
+                    className="accent-sky-500 w-20"
+                  />
+                  <span className="font-mono font-bold text-slate-700 text-xs w-8">
+                    {styleConfig.iconSize}px
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-600 font-bold text-[11px]">角丸:</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={24}
+                    step={2}
+                    value={styleConfig.borderRadius}
+                    onChange={(e) =>
+                      onChangeStyle({ ...styleConfig, borderRadius: Number(e.target.value) })
+                    }
+                    className="accent-sky-500 w-16"
+                  />
+                  <span className="font-mono font-bold text-slate-700 text-xs w-6">
+                    {styleConfig.borderRadius}px
+                  </span>
+                </div>
+
+                <label className="inline-flex items-center gap-1 cursor-pointer font-bold text-slate-700 text-[11px]">
+                  <input
+                    type="checkbox"
+                    checked={styleConfig.showIndicatorDots}
+                    onChange={(e) =>
+                      onChangeStyle({ ...styleConfig, showIndicatorDots: e.target.checked })
+                    }
+                    className="accent-sky-500 rounded"
+                  />
+                  <span>属性ドット</span>
+                </label>
+              </div>
+            </div>
+
+            {/* 右：属性・学校 */}
+            <div className="bg-white p-2.5 rounded-xl border border-sky-100 space-y-1.5">
+              <div className="flex flex-wrap items-center gap-1">
+                <span className="text-slate-600 font-bold text-[11px] w-10 shrink-0">攻撃:</span>
+                <button
+                  type="button"
+                  onClick={() => onChangeFilter({ ...filterConfig, attackType: 'all' })}
+                  className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${
+                    filterConfig.attackType === 'all'
+                      ? 'bg-slate-700 text-white'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  全
+                </button>
+                {Object.keys(ATTACK_COLORS).map((atk) => {
+                  const col = ATTACK_COLORS[atk];
+                  const active = filterConfig.attackType === atk;
+                  return (
+                    <button
+                      key={atk}
+                      type="button"
+                      onClick={() =>
+                        onChangeFilter({
+                          ...filterConfig,
+                          attackType: active ? 'all' : atk,
+                        })
+                      }
+                      style={{
+                        backgroundColor: active ? col.border : col.bg,
+                        color: active ? '#fff' : col.text,
+                        borderColor: col.border,
+                      }}
+                      className="px-2 py-0.5 rounded text-[11px] font-extrabold border transition"
+                    >
+                      {atk}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1">
+                <span className="text-slate-600 font-bold text-[11px] w-10 shrink-0">防御:</span>
+                <button
+                  type="button"
+                  onClick={() => onChangeFilter({ ...filterConfig, defenseType: 'all' })}
+                  className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${
+                    filterConfig.defenseType === 'all'
+                      ? 'bg-slate-700 text-white'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  全
+                </button>
+                {Object.keys(DEFENSE_COLORS).map((def) => {
+                  const col = DEFENSE_COLORS[def];
+                  const active = filterConfig.defenseType === def;
+                  return (
+                    <button
+                      key={def}
+                      type="button"
+                      onClick={() =>
+                        onChangeFilter({
+                          ...filterConfig,
+                          defenseType: active ? 'all' : def,
+                        })
+                      }
+                      style={{
+                        backgroundColor: active ? col.border : col.bg,
+                        color: active ? '#fff' : col.text,
+                        borderColor: col.border,
+                      }}
+                      className="px-2 py-0.5 rounded text-[11px] font-extrabold border transition"
+                    >
+                      {def}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center gap-2 pt-0.5">
+                <span className="text-slate-600 font-bold text-[11px] w-10 shrink-0">学校:</span>
+                <select
+                  value={filterConfig.school}
+                  onChange={(e) =>
+                    onChangeFilter({ ...filterConfig, school: e.target.value })
+                  }
+                  className="border border-sky-200 rounded px-2 py-0.5 font-bold text-slate-700 text-xs bg-white focus:outline-none focus:border-sky-400"
+                >
+                  <option value="all">すべての学校 ({totalFilteredCount}人)</option>
+                  {schools.map((sc) => (
+                    <option key={sc} value={sc}>
+                      {sc}
+                    </option>
+                  ))}
+                </select>
+                <span className="ml-auto text-slate-500 font-bold text-xs">
+                  未所持: <strong className="text-sky-600">{unownedCount}</strong> / {totalFilteredCount}人
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
